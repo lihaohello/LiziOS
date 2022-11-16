@@ -6,14 +6,14 @@
 print:
   push ax
   mov ah,0xe
-.next
+.next:
   mov al,[si]
   cmp al,0
   jz .done
   int 0x10
   inc si
   jmp .next
-.done
+.done:
   pop ax
   ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of print
