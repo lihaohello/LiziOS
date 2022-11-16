@@ -1,4 +1,4 @@
-boot.bin: boot.asm
+%.bin: %.asm
 	nasm -f bin $< -o $@
 
 master.img: boot.bin
