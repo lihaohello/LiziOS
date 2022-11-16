@@ -9,11 +9,16 @@ mov es,ax
 mov ss,ax
 mov sp,0x7c00
 
-mov ax,0xb800
-mov ds,ax
-mov byte [0],'H'
+mov si,booting
+call print
 
 jmp $
+
+;引入库文件
+%include "lib.inc"
+
+booting:
+  db "LiziOS is booting...",10,13,0
 
 times 510-($-$$) db 0
 
