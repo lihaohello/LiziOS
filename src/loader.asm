@@ -7,7 +7,7 @@ call print
 
 jmp $
 
-%include "lib.inc"
-
 loading:
     db "LiziOS is loading...",10,13,0
+
+%include "./libs/print.inc"

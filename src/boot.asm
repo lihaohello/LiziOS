@@ -14,32 +14,29 @@ xchg bx,bx
 mov si,booting
 call print
 
-mov ax,0
-mov ds,ax
-mov es,ax
-mov ss,ax
-mov sp,0x7c00
+xchg bx,bx
 ; 读取加载器
-call readloader
+mov ax,0
+mov es,ax
+mov bx,0x1000
+mov al,1
+mov dl,0
+mov ch,0
+mov dh,0
+mov cl,2
+call readDisk
 
-jmp $
+xchg bx,bx
+jmp fin
+
+; 读取完成
+fin:
+  hlt
+  jmp $
 
 ;引入库文件
-%include "lib.inc"
-
-readloader:
-  mov dx,0x0000
-  mov cx,0x0002
-  mov bx,0x1000
-  mov ax,0x0204
-  int 0x13
-  jnc okloader
-  mov dx,0x0000
-  mov ax,0x0000
-  int 0x13
-  jmp readloader
-okloader:
-  ret
+%include "./libs/print.inc"
+%include "./libs/readDisk.inc"
 
 booting:
   db "LiziOS is booting...",10,13,0
