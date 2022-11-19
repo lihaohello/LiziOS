@@ -9,37 +9,51 @@ mov es,ax
 mov ss,ax
 mov sp,0x7c00
 
-xchg bx,bx
 ;显示字符串
 mov si,booting
 call print
 
-xchg bx,bx
-; 读取加载器
-mov ax,0
-mov es,ax
+;读取加载器-BIOS
 mov bx,0x1000
 mov al,4
 mov dl,0b10000000
 mov ch,0
 mov dh,0
 mov cl,2
-call readDisk
+call readDisk_BIOS
 
-xchg bx,bx
+;xchg bx,bx
+;;读取加载器-LBA
+;mov edi,0x1000
+;mov ecx,2
+;mov bl,4
+;call readDisk_LBA
+
+cmp word [0x1000],0x55aa
+jnz error
+
 jmp fin
 
-; 读取完成
+;完成
 fin:
   hlt
   jmp $
 
-;引入库文件
-%include "./libs/print.inc"
-%include "./libs/readDisk.inc"
-
 booting:
   db "LiziOS is booting...",10,13,0
+
+error:
+  mov si,error_msg
+  call print
+  jmp fin
+
+error_msg:
+  db "ERROR!",10,13,0
+
+;引入库文件
+%include "./libs/print.inc"
+%include "./libs/readDisk_BIOS.inc"
+;%include "./libs/readDisk_LBA.inc"
 
 times 510-($-$$) db 0
 

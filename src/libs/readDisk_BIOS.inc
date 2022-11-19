@@ -7,8 +7,8 @@
 ;mov ch,0
 ;mov dh,0
 ;mov cl,2
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk
-; readDisk-读磁盘函数(AH=0x02)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk_BIOS
+; readDisk_BIOS-读磁盘函数(AH=0x02)
 ; input:
 ;       1. ES:BX=缓存位置
 ;       2. AL=读扇区数量
@@ -20,27 +20,27 @@
 ;       FLAGS.CF==0:没有错误,AH=0;
 ;       || FLAGS.CF==1:有错误,AH存储错误号;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-readDisk:
+readDisk_BIOS:
   mov si,0x00
-readDisk_retry:
+readDisk_BIOS_retry:
   mov ah,0x02
   int 0x13
-  jnc readDisk_over   ;读取成功，返回
+  jnc readDisk_BIOS_over   ;读取成功，返回
   add si,1
   cmp si,5
-  jae readDisk_error  ;读取次数已经最大，返回错误
+  jae readDisk_BIOS_error  ;读取次数已经最大，返回错误
   xor ah,ah
   mov dl,0b10000000
   int 0x13  ;重置驱动器
-  jmp readDisk_retry
-readDisk_over:
+  jmp readDisk_BIOS_retry
+readDisk_BIOS_over:
   ret
 
-readDisk_error:
-  mov si,readDisk_error_msg
+readDisk_BIOS_error:
+  mov si,readDisk_BIOS_error_msg
   call print
-  jmp readDisk_over
+  jmp readDisk_BIOS_over
 
-readDisk_error_msg:
+readDisk_BIOS_error_msg:
   db "Failed to read disk!",10,13,0
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk_BIOS
