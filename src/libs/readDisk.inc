@@ -3,7 +3,7 @@
 ;mov es,ax
 ;mov bx,0x1000
 ;mov al,1
-;mov dl,0
+;mov dl,0b10000000
 ;mov ch,0
 ;mov dh,0
 ;mov cl,2
@@ -29,8 +29,8 @@ readDisk_retry:
   add si,1
   cmp si,5
   jae readDisk_error  ;读取次数已经最大，返回错误
-  mov ah,0x00
-  mov dl,0x00
+  xor ah,ah
+  mov dl,0b10000000
   int 0x13  ;重置驱动器
   jmp readDisk_retry
 readDisk_over:

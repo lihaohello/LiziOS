@@ -19,8 +19,8 @@ xchg bx,bx
 mov ax,0
 mov es,ax
 mov bx,0x1000
-mov al,1
-mov dl,0
+mov al,4
+mov dl,0b10000000
 mov ch,0
 mov dh,0
 mov cl,2
