@@ -1,6 +1,6 @@
 ;输入参考
 ;mov edi,0x1000
-;mov ecx,2
+;mov ecx,1
 ;mov bl,4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk_LBA

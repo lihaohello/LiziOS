@@ -22,10 +22,10 @@ mov dh,0
 mov cl,2
 call readDisk_BIOS
 
+;读取加载器-LBA
 ;xchg bx,bx
-;;读取加载器-LBA
 ;mov edi,0x1000
-;mov ecx,2
+;mov ecx,1
 ;mov bl,4
 ;call readDisk_LBA
 
