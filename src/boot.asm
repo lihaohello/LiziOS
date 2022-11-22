@@ -32,23 +32,21 @@ call readDisk_BIOS
 cmp word [0x1000],0x55aa
 jnz error
 
-jmp fin
+jmp 0:0x1002
 
 ;完成
 fin:
   hlt
   jmp $
 
-booting:
-  db "LiziOS is booting...",10,13,0
-
 error:
-  mov si,error_msg
+  mov si,.msg
   call print
   jmp fin
+  .msg db "ERROR!",10,13,0
 
-error_msg:
-  db "ERROR!",10,13,0
+booting:
+  db "LiziOS is booting...",10,13,0
 
 ;引入库文件
 %include "./libs/print.inc"

@@ -9,14 +9,14 @@
 print:
   push ax
   mov ah,0xe
-print_next:
+.next:
   mov al,[si]
   cmp al,0
-  jz print_done
+  jz .done
   int 0x10
   inc si
-  jmp print_next
-print_done:
+  jmp .next
+.done:
   pop ax
   ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of print

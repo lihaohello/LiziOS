@@ -5,7 +5,9 @@ dw 0x55aa
 mov si,loading
 call print
 
-jmp $
+fin:
+    hlt
+    jmp $
 
 loading:
     db "LiziOS is loading...",10,13,0

@@ -22,25 +22,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 readDisk_BIOS:
   mov si,0x00
-readDisk_BIOS_retry:
+.retry:
   mov ah,0x02
   int 0x13
-  jnc readDisk_BIOS_over   ;读取成功，返回
+  jnc .over   ;读取成功，返回
   add si,1
   cmp si,5
-  jae readDisk_BIOS_error  ;读取次数已经最大，返回错误
+  jae .error  ;读取次数已经最大，返回错误
   xor ah,ah
   mov dl,0b10000000
   int 0x13  ;重置驱动器
-  jmp readDisk_BIOS_retry
-readDisk_BIOS_over:
+  jmp .retry
+.over:
   ret
 
-readDisk_BIOS_error:
-  mov si,readDisk_BIOS_error_msg
+.error:
+  mov si,.msg
   call print
-  jmp readDisk_BIOS_over
+  jmp .over
 
-readDisk_BIOS_error_msg:
+.msg:
   db "Failed to read disk!",10,13,0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk_BIOS
