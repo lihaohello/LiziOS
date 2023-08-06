@@ -1,9 +1,5 @@
 [org 0x1000]
 
-;打印一些信息
-mov si,loading
-call print
-
 ;内存检测
 check_memory:
     mov ax,0
@@ -63,10 +59,6 @@ protect_enable:
     mov byte [0xb8000+2],'P'
     jmp $
 
-
-loading:
-  db "LiziOS is loading...",10,13,0
-%include "./libs/print.inc"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 以下定义一些关键符号
