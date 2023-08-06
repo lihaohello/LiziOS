@@ -60,8 +60,13 @@ protect_enable:
     mov esp,0x10000
     ;能通过保护模式内存访问方式访问内存，说保护模式启动成功
     mov byte [0xb8000],'P'
+    mov byte [0xb8000+2],'P'
     jmp $
 
+
+loading:
+  db "LiziOS is loading...",10,13,0
+%include "./libs/print.inc"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 以下定义一些关键符号
@@ -100,10 +105,6 @@ gdt_data:
     db (base >> 24) & 0xff
 ;全局描述符表结束地址
 gdt_end:
-
-loading:
-  db "LiziOS is loading...",10,13,0
-%include "./libs/print.inc"
 
 adrs_count: 
 dw 0
