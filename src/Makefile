@@ -11,5 +11,5 @@ clean:
 	rm -rf *.bin *.img
 
 .PHONY: bochs
-bochs: bashrc master.img
+bochs: bochsrc master.img
 	bochs -f $<

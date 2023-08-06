@@ -1,7 +1,9 @@
 ;输入参考
-;mov edi,0x1000
-;mov ecx,1
-;mov bl,4
+; xchg bx,bx
+; mov edi,0x1000
+; mov ecx,1
+; mov bl,4
+; call readDisk_LBA
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk_LBA
 ; readDisk_LBA-采用IDE/ATA PIO方式读取磁盘数据

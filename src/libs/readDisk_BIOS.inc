@@ -1,12 +1,12 @@
 ;输入参考
-;mov ax,0
-;mov es,ax
-;mov bx,0x1000
-;mov al,1
-;mov dl,0b10000000
-;mov ch,0
-;mov dh,0
-;mov cl,2
+; mov bx,0x1000
+; mov al,4
+; mov dl,0b10000000
+; mov ch,0
+; mov dh,0
+; mov cl,2
+; call readDisk_BIOS
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk_BIOS
 ; readDisk_BIOS-读磁盘函数(AH=0x02)
 ; input:
@@ -44,3 +44,5 @@ readDisk_BIOS:
 .msg:
   db "Failed to read disk!",10,13,0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk_BIOS
+
+%include "./libs/print.inc"
