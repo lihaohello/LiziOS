@@ -42,7 +42,6 @@ prepare_protect_mode:
     ;出现异常
     ud2
 
-
 [bits 32]
 ; 正式进入保护模式
 protect_enable:
@@ -57,7 +56,85 @@ protect_enable:
     ;能通过保护模式内存访问方式访问内存，说保护模式启动成功
     mov byte [0xb8000],'P'
     mov byte [0xb8000+2],'P'
+
+    ;开启分页机制
+    call setup_page
+    ; 向线性地址0xFFFFF0FF写入0x55aa数据，对比相应位置的物理地址和线性地址数据，一致说明分页机制开启成功
+    mov ax,data_selector
+    mov ds,ax
+    mov dword [0xFFFFF0FF],0x55aa
+
+    call load_kernel
+
+    jmp code_selector: 0x11000
     jmp $
+
+load_kernel:
+    mov edi, 0x10000
+    mov ecx, 10
+    mov bl, 100
+    call readDisk_LBA
+    ret
+
+;引入程序库
+%include "./libs/readDisk_LBA.inc"
+
+PDE equ 0x2000
+PTE equ 0x3000
+ATTR equ 0b11
+
+setup_page:
+    mov eax, PDE
+    call .clear_page
+    mov eax, PTE
+    call .clear_page
+
+    ; 前面的 1M 内 前面的 1M
+    ; 前面的 1M 映射到 0xC0000000 ~ 0xC0100000
+    mov eax, PTE
+    or eax, ATTR
+    mov [PDE], eax; 
+    ;0b_00000_00000_00000_00000_00000_00000_00
+    mov [PDE + 0x300 * 4], eax;
+    ;0b_11000_00000_00000_00000_00000_00000_00
+
+    mov eax, PDE
+    or eax, ATTR
+    mov [PDE + 0x3ff * 4], eax; 吧最后一个页表指向了页目录
+
+    mov ebx, PTE
+    mov ecx, (0x100000 / 0x1000); 256
+    mov esi, 0
+    ; xchg bx, bx
+
+.next_page:
+    mov eax, esi
+    shl eax, 12
+    or eax, ATTR
+
+    mov [ebx + esi * 4], eax
+    inc esi
+    loop .next_page
+
+    ; xchg bx, bx
+    mov eax, PDE
+    mov cr3, eax
+
+    mov eax, cr0
+    or eax, 0b1000_0000_0000_0000_0000_0000_0000_0000
+    mov cr0, eax
+
+    ret
+
+.clear_page:
+    ; 清空一个内存页，地址参数存在 eax 中
+    mov ecx, 0x1000
+    mov esi, 0
+.set:
+    mov byte [eax + esi], 0
+    inc esi
+    loop .set
+    ret
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
