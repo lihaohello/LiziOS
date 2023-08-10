@@ -32,11 +32,13 @@ master.img: boot.bin loader.bin kernel.bin
 	dd if=loader.bin of=$@ bs=512 count=4 seek=1 conv=notrunc
 	dd if=kernel.bin of=$@ bs=512 count=100 seek=10 conv=notrunc	
 
+.PHONY: bochs
+bochs: bochsrc master.img
+	bochs -f $<
+
 .PHONY: clean
 clean:
 	rm -f *.bin *.img *.o
 
-.PHONY: bochs
-bochs: bochsrc master.img
-	make master.img
-	bochs -f $<
+%.s: %.c 
+	gcc $(CFLAGS) -S -fverbose-asm $< -o $@
