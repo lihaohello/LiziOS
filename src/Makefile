@@ -38,7 +38,7 @@ bochs: bochsrc master.img
 
 .PHONY: clean
 clean:
-	rm -f *.bin *.img *.o
+	rm -f *.bin *.img *.o main
 
 %.s: %.c 
 	gcc $(CFLAGS) -S -fverbose-asm $< -o $@
