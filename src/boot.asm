@@ -9,7 +9,6 @@ mov ax,0
 mov ds,ax
 mov es,ax
 mov ss,ax
-mov sp,0x7c00
 
 ;显示字符串-BIOS
 mov si,booting
