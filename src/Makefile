@@ -12,4 +12,4 @@ bochs: bochsrc master.img
 
 .PHONY: clean
 clean:
-	rm -f *.bin *.img
+	rm -f *.bin *.img *.o

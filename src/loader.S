@@ -1,15 +1,54 @@
 section loader vstart=LOADER_BASE_ADDR
-jmp loader_start
 
+; 检测内存
+detect_memory:
+  xor ebx,ebx
+  mov ax,ds
+  mov es,ax
+  mov edi,ards_buffer
+  mov edx,0x534d4150
+  .next:
+    mov eax,0xe820
+    mov ecx,20
+    int 0x15
+    jc error
+    add di,cx
+    inc dword [ards_count]
+    cmp ebx,0
+    jnz .next
+
+; 计算内存容量，写入地址total_mem_bytes
+get_total_mem_bytes:
+  mov cx,[ards_count]
+  mov ebx,ards_buffer
+  xor edx,edx
+  .find_max_mem_area:
+    mov eax,[ebx]
+    add eax,[ebx+8]
+    add ebx,20
+    cmp edx,eax
+    jge .next_ards
+    mov edx,eax
+  .next_ards:
+    loop .find_max_mem_area
+  mov [total_mem_bytes],edx
+
+xchg bx,bx
+mov eax,[total_mem_bytes]
+xchg bx,bx
+
+jmp loader_start 
+
+loadermsg db '2 loader in real',10, 13,0
 %include "./libs/print.inc"
-loadermsg db '2 loader in real.',0
 
 ; 开始切换到保护模式
 loader_start:
 ; 打印信息
 mov si,loadermsg
 call print
-
+; 关闭中断
+cli
 ; 打开A20，关闭地址回绕机制
 in al,0x92
 or al,0b10
@@ -23,6 +62,7 @@ mov cr0,eax
 ; 跳转到保护模式代码，刷新流水线
 jmp dword code_selector:p_mode_start
 
+
 ; 保护模式代码
 [bits 32]
 p_mode_start:
@@ -34,17 +74,36 @@ p_mode_start:
   mov esp,LOADER_BASE_ADDR
   mov ax,video_selector
   mov gs,ax
-  mov byte [gs:160],'P'
+  mov byte [gs:160],'L'
+  mov byte [gs:161],0xA4
+  mov byte [gs:162],'i'
+  mov byte [gs:163],0xA4
+  mov byte [gs:164],'z'
+  mov byte [gs:165],0xA4
+  mov byte [gs:166],'i'
+  mov byte [gs:167],0xA4
+  mov byte [gs:168],'O'
+  mov byte [gs:169],0xA4
+  mov byte [gs:170],'S'
+  mov byte [gs:171],0xA4
   jmp $
+
+error:
+  mov si, .msg
+  call print
+  hlt
+  jmp $
+  .msg db "Loading Error!!!", 10, 13, 0
+
 
 ; 相关定义
 LOADER_BASE_ADDR equ 0x900
-LOADER_START_SECTOR equ 0x2
 
 ; 选择子
 code_selector equ (1<<3)
 data_selector equ (2<<3)
 video_selector equ (3<<3)
+
 ; 定义GDT表的长度和基址
 gdt_ptr:
   dw (gdt_end-gdt_base-1)
@@ -54,7 +113,7 @@ base equ 0          ; 段基址
 limit equ 0xfffff   ; 段大小限值
 video_base equ 0xb8000
 video_limit equ 0x7
-; 定义3个全局描述符（第0个无效）
+; 定义3个全局描述符（第0个无效、代码段、数据段、显存段）
 gdt_base:
   dd 0,0
 gdt_code:
@@ -79,3 +138,10 @@ gdt_video:
   db 0b1100_0000 | (video_limit >> 16)
   db (video_base >> 24) & 0xff
 gdt_end:
+
+; 用于保存内存容量数据
+total_mem_bytes:
+  dd 0
+ards_count:
+  dd 0
+ards_buffer:

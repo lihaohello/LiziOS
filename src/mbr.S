@@ -27,7 +27,7 @@ section mbr vstart=0x7c00
   mov byte [gs:0x08],'R'
   mov byte [gs:0x09],0xA4
 
-  ; 读硬盘
+  ; 将加载器从硬盘读到内存
   mov edi,LOADER_BASE_ADDR
   mov bl,4
   mov ecx,LOADER_START_SECTOR
