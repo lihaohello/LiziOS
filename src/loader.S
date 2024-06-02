@@ -9,7 +9,6 @@ loader_start:
 ; 打印信息
 mov si,loadermsg
 call print
-xchg bx,bx
 
 ; 打开A20，关闭地址回绕机制
 in al,0x92
@@ -42,15 +41,15 @@ p_mode_start:
 LOADER_BASE_ADDR equ 0x900
 LOADER_START_SECTOR equ 0x2
 
-; 定义代码段和数据段的选择子
+; 选择子
 code_selector equ (1<<3)
 data_selector equ (2<<3)
 video_selector equ (3<<3)
-; 定义全局描述符相关的数据
+; 定义GDT表的长度和基址
 gdt_ptr:
   dw (gdt_end-gdt_base-1)
   dd gdt_base
-; 全局描述符表的限界和基址
+; 各全局描述符的限长和基址
 base equ 0          ; 段基址
 limit equ 0xfffff   ; 段大小限值
 video_base equ 0xb8000

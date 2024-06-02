@@ -33,7 +33,6 @@ section mbr vstart=0x7c00
   mov ecx,LOADER_START_SECTOR
   call readDisk_LBA
 
-  xchg bx,bx
   jmp LOADER_BASE_ADDR
 
   LOADER_BASE_ADDR equ 0x900
