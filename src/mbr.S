@@ -29,14 +29,15 @@ section mbr vstart=0x7c00
 
   ; 读硬盘
   mov edi,LOADER_BASE_ADDR
-  mov bl,1
+  mov bl,4
   mov ecx,LOADER_START_SECTOR
   call readDisk_LBA
 
   xchg bx,bx
   jmp LOADER_BASE_ADDR
 
-  %include "boot.inc"
+  LOADER_BASE_ADDR equ 0x900
+  LOADER_START_SECTOR equ 0x2
   %include "./libs/readDisk_LBA.inc"
 
   times 510-($-$$) db 0
