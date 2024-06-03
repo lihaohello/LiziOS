@@ -33,6 +33,7 @@ get_total_mem_bytes:
     loop .find_max_mem_area
   mov [total_mem_bytes],edx
 
+; 查看内存容量
 xchg bx,bx
 mov eax,[total_mem_bytes]
 xchg bx,bx
@@ -59,6 +60,22 @@ lgdt [gdt_ptr]
 mov eax,cr0
 or eax,1
 mov cr0,eax
+
+; 开启分页机制
+call setup_page
+sgdt [gdt_ptr]
+mov ebx,[gdt_ptr+2]
+or dword [ebx+0x18+4],0xc0000000
+add dword [gdt_ptr+2],0xc0000000
+add esp,0xc0000000
+mov eax,PAGE_DIR_TABLE_POS
+mov cr3,eax
+
+mov eax,cr0
+or eax,0x80000000
+mov cr0,eax
+lgdt [gdt_ptr]
+
 ; 跳转到保护模式代码，刷新流水线
 jmp dword code_selector:p_mode_start
 
@@ -86,7 +103,51 @@ p_mode_start:
   mov byte [gs:169],0xA4
   mov byte [gs:170],'S'
   mov byte [gs:171],0xA4
-  jmp $
+
+; 循环执行
+jmp $
+
+; 启动页表机制
+setup_page:
+  ; 清空页目录
+  mov ecx,0x1000
+  mov esi,0
+  .clear_page_dir:
+    mov byte [PAGE_DIR_TABLE_POS+esi],0
+    inc esi
+    loop .clear_page_dir
+  ; 创建页目录（两个页目录项，最后一个指向自己）
+  .create_pde:
+    mov eax,PAGE_DIR_TABLE_POS
+    add eax,0x1000
+    mov ebx,eax
+    or eax,0b111
+    mov [PAGE_DIR_TABLE_POS+0x0],eax
+    sub eax,0x1000
+    mov [PAGE_DIR_TABLE_POS+4092],eax
+  ; 创建页表项
+  mov ecx,256
+  mov esi,0
+  mov edx,0b111
+  .create_pte:
+    mov [ebx+esi*4],edx
+    add edx,0x1000
+    inc esi
+    loop .create_pte
+  ; 创建内核其他页表的PDE
+  mov eax,PAGE_DIR_TABLE_POS
+  add eax,0x2000
+  or eax,0b111
+  mov ebx,PAGE_DIR_TABLE_POS
+  mov ecx,254
+  mov esi,769
+  .create_kernel_pde:
+    mov [ebx+esi*4],eax
+    inc esi
+    add eax,0x1000
+    loop .create_kernel_pde
+    ret
+
 
 error:
   mov si, .msg
@@ -98,6 +159,7 @@ error:
 
 ; 相关定义
 LOADER_BASE_ADDR equ 0x900
+PAGE_DIR_TABLE_POS equ 0x100000
 
 ; 选择子
 code_selector equ (1<<3)
