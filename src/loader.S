@@ -1,4 +1,4 @@
-section loader vstart=LOADER_BASE_ADDR
+[org 0x900]
 
 ; 检测内存
 detect_memory:
@@ -35,7 +35,6 @@ get_total_mem_bytes:
 
 ; 查看内存容量
 mov eax,[total_mem_bytes]
-xchg bx,bx
 
 jmp loader_start 
 
@@ -96,7 +95,6 @@ p_mode_start:
   mov eax,cr0
   or eax,0x80000000
   mov cr0,eax
-  xchg bx,bx
   lgdt [gdt_ptr]
   mov byte [gs:320],'P'
   mov byte [gs:322],'A'
@@ -166,7 +164,7 @@ code_selector equ (1<<3)
 data_selector equ (2<<3)
 video_selector equ (3<<3)
 
-; 定义GDT表的长度和基址
+; 定义全局描述符
 gdt_ptr:
   dw (gdt_end-gdt_base-1)
   dd gdt_base
