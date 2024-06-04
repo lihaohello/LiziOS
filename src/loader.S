@@ -34,7 +34,6 @@ get_total_mem_bytes:
   mov [total_mem_bytes],edx
 
 ; 查看内存容量
-xchg bx,bx
 mov eax,[total_mem_bytes]
 xchg bx,bx
 
@@ -48,8 +47,6 @@ loader_start:
 ; 打印信息
 mov si,loadermsg
 call print
-; 关闭中断
-cli
 ; 打开A20，关闭地址回绕机制
 in al,0x92
 or al,0b10
@@ -60,25 +57,8 @@ lgdt [gdt_ptr]
 mov eax,cr0
 or eax,1
 mov cr0,eax
-
-; 开启分页机制
-call setup_page
-sgdt [gdt_ptr]
-mov ebx,[gdt_ptr+2]
-or dword [ebx+0x18+4],0xc0000000
-add dword [gdt_ptr+2],0xc0000000
-add esp,0xc0000000
-mov eax,PAGE_DIR_TABLE_POS
-mov cr3,eax
-
-mov eax,cr0
-or eax,0x80000000
-mov cr0,eax
-lgdt [gdt_ptr]
-
 ; 跳转到保护模式代码，刷新流水线
 jmp dword code_selector:p_mode_start
-
 
 ; 保护模式代码
 [bits 32]
@@ -104,6 +84,25 @@ p_mode_start:
   mov byte [gs:170],'S'
   mov byte [gs:171],0xA4
 
+  ; 开启分页机制
+  call setup_page
+  sgdt [gdt_ptr]
+  mov ebx,[gdt_ptr+2]
+  or dword [ebx+0x18+4],0xc0000000
+  add dword [gdt_ptr+2],0xc0000000
+  add esp,0xc0000000
+  mov eax,PAGE_DIR_TABLE_POS
+  mov cr3,eax
+  mov eax,cr0
+  or eax,0x80000000
+  mov cr0,eax
+  xchg bx,bx
+  lgdt [gdt_ptr]
+  mov byte [gs:320],'P'
+  mov byte [gs:322],'A'
+  mov byte [gs:324],'G'
+  mov byte [gs:326],'E'
+
 ; 循环执行
 jmp $
 
@@ -123,9 +122,10 @@ setup_page:
     mov ebx,eax
     or eax,0b111
     mov [PAGE_DIR_TABLE_POS+0x0],eax
+    mov [PAGE_DIR_TABLE_POS+0xc00],eax
     sub eax,0x1000
     mov [PAGE_DIR_TABLE_POS+4092],eax
-  ; 创建页表项
+  ; 创建页表项1
   mov ecx,256
   mov esi,0
   mov edx,0b111
