@@ -41,11 +41,10 @@ get_total_mem_bytes:
   mov [total_mem_bytes],edx
 ; 查看内存容量
 mov eax,[total_mem_bytes]
-; 输出提示信息
+; 输出提示信息，重置光标
 mov si,memory_detect_msg
 call print
 mov dx,0
-; 重置光标
 call position_cursor 
 
 ; 开始切换到保护模式

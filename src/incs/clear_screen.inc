@@ -19,7 +19,7 @@ clear_screen:
   mov cx,0x0000
   mov dh,24
   mov dl,79
-  mov bh,0x17
+  mov bh,0x17   ; 蓝底白字
   int 0x10
 
   ; 重置光标位置
