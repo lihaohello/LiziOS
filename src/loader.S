@@ -44,6 +44,9 @@ mov eax,[total_mem_bytes]
 ; 输出提示信息
 mov si,memory_detect_msg
 call print
+mov dx,0
+; 重置光标
+call position_cursor 
 
 ; 开始切换到保护模式
 ; 打开A20，以关闭地址回绕机制
@@ -64,7 +67,8 @@ jmp dword code_selector:p_mode_start
 loader_base_addr equ 0x900
 memory_detect_msg db "Memory detection finished.",10,13,0
 loadermsg db '2 loader in real',10, 13,0
-%include "./libs/print.inc"
+%include "./incs/print.inc"
+%include "./incs/position_cursor.inc"
 ;--------------------------------------
 
 ; 保护模式代码

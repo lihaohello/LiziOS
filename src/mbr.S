@@ -30,10 +30,10 @@ loader_base_addr equ 0x900
 boot_msg db 'Booting...',13,10,0
 
 ; 加载封装好的函数
-%include "./libs/position_cursor.inc"
-%include "./libs/clear_screen.inc"
-%include "./libs/print.inc"
-%include "./libs/read_disk_LBA.inc"
+%include "./incs/position_cursor.inc"
+%include "./incs/clear_screen.inc"
+%include "./incs/print.inc"
+%include "./incs/read_disk_LBA.inc"
 ;--------------------------------------
 
 times 510-($-$$) db 0
