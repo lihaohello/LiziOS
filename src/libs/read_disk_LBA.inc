@@ -1,19 +1,25 @@
-;输入参考
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; 使用示例
 ; xchg bx,bx
 ; mov edi,0x1000
 ; mov ecx,1
 ; mov bl,4
-; call readDisk_LBA
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk_LBA
-; readDisk_LBA-采用IDE/ATA PIO方式读取磁盘数据
+; call read_disk_LBA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; read_disk_LBA: 采用IDE/ATA PIO方式读取磁盘数据
 ; input:
-;       1. edi=内存地址
-;       2. ecx=起始扇区
-;       3. bl=扇区数量
-; output: 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-readDisk_LBA:
+;   edi=内存地址
+;   ecx=读取的起始扇区号
+;   bl=扇区数量
+; output:
+;   无
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+read_disk_LBA:
+    push dx
+    push ax
+    push ecx
+    push bx
+
     mov dx,0x1f2
     ;设置读写扇区的数量
     mov al,bl
@@ -57,6 +63,11 @@ readDisk_LBA:
         call .reads
         pop cx
         loop .read
+    
+    pop bx
+    pop ecx
+    pop ax
+    pop dx
     ret
 
     ;等待数据准备完毕
@@ -85,4 +96,4 @@ readDisk_LBA:
             add edi,2
             loop .readw
         ret
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;End of readDisk_LBA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

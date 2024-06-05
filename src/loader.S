@@ -11,11 +11,18 @@ detect_memory:
     mov eax,0xe820
     mov ecx,20
     int 0x15
-    jc error
+    jc .error
     add di,cx
     inc dword [ards_count]
     cmp ebx,0
     jnz .next
+    jmp get_total_mem_bytes 
+  .error:
+    mov si, .msg
+    call print
+    hlt
+    jmp $
+    .msg db "Memory detection failed.", 10, 13, 0
 
 ; 计算内存容量，写入地址total_mem_bytes
 get_total_mem_bytes:
@@ -32,21 +39,14 @@ get_total_mem_bytes:
   .next_ards:
     loop .find_max_mem_area
   mov [total_mem_bytes],edx
-
 ; 查看内存容量
 mov eax,[total_mem_bytes]
-
-jmp loader_start 
-
-loadermsg db '2 loader in real',10, 13,0
-%include "./libs/print.inc"
+; 输出提示信息
+mov si,memory_detect_msg
+call print
 
 ; 开始切换到保护模式
-loader_start:
-; 打印信息
-mov si,loadermsg
-call print
-; 打开A20，关闭地址回绕机制
+; 打开A20，以关闭地址回绕机制
 in al,0x92
 or al,0b10
 out 0x92,al
@@ -59,6 +59,14 @@ mov cr0,eax
 ; 跳转到保护模式代码，刷新流水线
 jmp dword code_selector:p_mode_start
 
+;--------------------------------------
+; 变量定义和函数引入
+loader_base_addr equ 0x900
+memory_detect_msg db "Memory detection finished.",10,13,0
+loadermsg db '2 loader in real',10, 13,0
+%include "./libs/print.inc"
+;--------------------------------------
+
 ; 保护模式代码
 [bits 32]
 p_mode_start:
@@ -67,62 +75,93 @@ p_mode_start:
   mov es,ax
   mov ss,ax
   mov fs,ax
-  mov esp,LOADER_BASE_ADDR
+  mov esp,loader_base_addr
   mov ax,video_selector
   mov gs,ax
-  mov byte [gs:160],'L'
-  mov byte [gs:161],0xA4
-  mov byte [gs:162],'i'
-  mov byte [gs:163],0xA4
-  mov byte [gs:164],'z'
-  mov byte [gs:165],0xA4
-  mov byte [gs:166],'i'
-  mov byte [gs:167],0xA4
-  mov byte [gs:168],'O'
-  mov byte [gs:169],0xA4
-  mov byte [gs:170],'S'
-  mov byte [gs:171],0xA4
-
-  ; 开启分页机制
-  call setup_page
-  sgdt [gdt_ptr]
-  mov ebx,[gdt_ptr+2]
-  or dword [ebx+0x18+4],0xc0000000
-  add dword [gdt_ptr+2],0xc0000000
-  add esp,0xc0000000
-  mov eax,PAGE_DIR_TABLE_POS
-  mov cr3,eax
-  mov eax,cr0
-  or eax,0x80000000
-  mov cr0,eax
-  lgdt [gdt_ptr]
   mov byte [gs:320],'P'
-  mov byte [gs:322],'A'
-  mov byte [gs:324],'G'
-  mov byte [gs:326],'E'
+  mov byte [gs:322],'r'
+  mov byte [gs:324],'o'
+  mov byte [gs:326],'t'
+  mov byte [gs:328],'e'
+  mov byte [gs:330],'c'
+  mov byte [gs:332],'t'
+  mov byte [gs:334],'i'
+  mov byte [gs:336],'o'
+  mov byte [gs:338],'n'
+  mov byte [gs:340],' '
+  mov byte [gs:342],'m'
+  mov byte [gs:344],'o'
+  mov byte [gs:346],'d'
+  mov byte [gs:348],'e'
+  mov byte [gs:350],' '
+  mov byte [gs:352],'o'
+  mov byte [gs:354],'p'
+  mov byte [gs:356],'e'
+  mov byte [gs:358],'n'
+  mov byte [gs:360],'e'
+  mov byte [gs:362],'d'
+  mov byte [gs:364],'!'
 
-; 循环执行
+; 开启分页机制
+call setup_page
+sgdt [gdt_ptr]
+mov ebx,[gdt_ptr+2]
+or dword [ebx+0x18+4],0xc0000000
+add dword [gdt_ptr+2],0xc0000000
+add esp,0xc0000000
+mov eax,page_dir_table_pos
+mov cr3,eax
+mov eax,cr0
+or eax,0x80000000
+mov cr0,eax
+lgdt [gdt_ptr]
+mov byte [gs:480],'P'
+mov byte [gs:482],'a'
+mov byte [gs:484],'g'
+mov byte [gs:486],'e'
+mov byte [gs:488],' '
+mov byte [gs:490],'m'
+mov byte [gs:492],'a'
+mov byte [gs:494],'c'
+mov byte [gs:496],'h'
+mov byte [gs:498],'a'
+mov byte [gs:500],'n'
+mov byte [gs:502],'i'
+mov byte [gs:504],'s'
+mov byte [gs:506],'m'
+mov byte [gs:508],' '
+mov byte [gs:510],'o'
+mov byte [gs:512],'p'
+mov byte [gs:514],'e'
+mov byte [gs:516],'n'
+mov byte [gs:518],'e'
+mov byte [gs:520],'d'
+mov byte [gs:522],'!'
+
+; 在该处无限循环
 jmp $
 
-; 启动页表机制
+;--------------------------------------
+; 页机制子函数定义
+; 设置页表
 setup_page:
   ; 清空页目录
   mov ecx,0x1000
   mov esi,0
   .clear_page_dir:
-    mov byte [PAGE_DIR_TABLE_POS+esi],0
+    mov byte [page_dir_table_pos+esi],0
     inc esi
     loop .clear_page_dir
   ; 创建页目录（两个页目录项，最后一个指向自己）
   .create_pde:
-    mov eax,PAGE_DIR_TABLE_POS
+    mov eax,page_dir_table_pos
     add eax,0x1000
     mov ebx,eax
     or eax,0b111
-    mov [PAGE_DIR_TABLE_POS+0x0],eax
-    mov [PAGE_DIR_TABLE_POS+0xc00],eax
+    mov [page_dir_table_pos+0x0],eax
+    mov [page_dir_table_pos+0xc00],eax
     sub eax,0x1000
-    mov [PAGE_DIR_TABLE_POS+4092],eax
+    mov [page_dir_table_pos+4092],eax
   ; 创建页表项1
   mov ecx,256
   mov esi,0
@@ -133,10 +172,10 @@ setup_page:
     inc esi
     loop .create_pte
   ; 创建内核其他页表的PDE
-  mov eax,PAGE_DIR_TABLE_POS
+  mov eax,page_dir_table_pos
   add eax,0x2000
   or eax,0b111
-  mov ebx,PAGE_DIR_TABLE_POS
+  mov ebx,page_dir_table_pos
   mov ecx,254
   mov esi,769
   .create_kernel_pde:
@@ -145,19 +184,11 @@ setup_page:
     add eax,0x1000
     loop .create_kernel_pde
     ret
+;--------------------------------------
 
-
-error:
-  mov si, .msg
-  call print
-  hlt
-  jmp $
-  .msg db "Loading Error!!!", 10, 13, 0
-
-
-; 相关定义
-LOADER_BASE_ADDR equ 0x900
-PAGE_DIR_TABLE_POS equ 0x100000
+;--------------------------------------
+; 页机制相关数据定义
+page_dir_table_pos equ 0x100000
 
 ; 选择子
 code_selector equ (1<<3)
@@ -198,10 +229,13 @@ gdt_video:
   db 0b1100_0000 | (video_limit >> 16)
   db (video_base >> 24) & 0xff
 gdt_end:
+;--------------------------------------
 
+;--------------------------------------
 ; 用于保存内存容量数据
 total_mem_bytes:
   dd 0
 ards_count:
   dd 0
 ards_buffer:
+;--------------------------------------

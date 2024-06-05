@@ -1,27 +1,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; 使用示例
-; mov si,msg
-; call print
+; mov dh,0
+; mov dl,0
+; call position_cursor 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; print: 在界面显示字符串
+; position_cursor: 重置光标位置（默认BH=0）
 ; input:
-;   si=指向字符串在内存中的首地址（字符串以0结尾）
+;   DH=行
+;   DL=列
 ; output:
 ;   无
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-print:
+position_cursor:
   push ax
-  push si
-  mov ah,0xe
-.next:
-  mov al,[si]
-  cmp al,0
-  jz .done
+  push bx
+  mov bh,0
+  mov ah,0x02
   int 0x10
-  inc si
-  jmp .next
-.done:
-  pop si
+  pop bx
   pop ax
   ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
