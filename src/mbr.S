@@ -14,10 +14,12 @@ mov si,boot_msg
 call print
 
 ; 将loader加载器从硬盘读到内存
-mov edi,loader_base_addr
-mov bl,4
-mov ecx,2
-call read_disk_LBA
+mov ax,0
+mov ds,ax
+mov di,0x900
+mov cx,4
+mov ebx,2
+call read_disk_16
 
 ; 跳转到加载器代码
 jmp loader_base_addr
@@ -33,7 +35,7 @@ boot_msg db 'Booting...',13,10,0
 %include "./incs/position_cursor.inc"
 %include "./incs/clear_screen.inc"
 %include "./incs/print.inc"
-%include "./incs/read_disk_LBA.inc"
+%include "./incs/read_disk_16.inc"
 ;--------------------------------------
 
 times 510-($-$$) db 0

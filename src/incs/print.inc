@@ -11,7 +11,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 print:
   push ax
-  push si
   mov ah,0xe
 .next:
   mov al,[si]
@@ -21,7 +20,6 @@ print:
   inc si
   jmp .next
 .done:
-  pop si
   pop ax
   ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
