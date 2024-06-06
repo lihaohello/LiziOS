@@ -68,6 +68,7 @@ memory_detect_msg db "Memory detection finished.",10,13,0
 loadermsg db '2 loader in real',10, 13,0
 %include "./incs/print.inc"
 %include "./incs/position_cursor.inc"
+kernel_bin_addr equ 0x70000
 ;--------------------------------------
 
 ; 保护模式代码
@@ -110,7 +111,6 @@ mov edi, 0x70000
 mov ecx, 9
 mov bl, 200
 call read_disk_32
-xchg bx,bx
 
 ; 开启分页机制
 call setup_page
@@ -148,8 +148,11 @@ mov byte [gs:518],'e'
 mov byte [gs:520],'d'
 mov byte [gs:522],'!'
 
-; 在该处无限循环
-jmp $
+; 内核初始化，并跳转到内核代码中执行
+call kernel_init
+mov esp,0xc009f000
+; 跳转到内核代码
+jmp 0xc0001500
 
 
 ;--------------------------------------
@@ -265,6 +268,57 @@ setup_page:
     add eax,0x1000
     loop .create_kernel_pde
     ret
+;--------------------------------------
+
+;--------------------------------------
+; 内核初始化函数
+kernel_init:
+  xor eax,eax
+  xor ebx,ebx
+  xor edx,edx
+  xor ecx,ecx
+  ; 程序头表的起始地址
+  mov ebx,[kernel_bin_addr+28]
+  ; 程序头表在内存中的起始位置
+  add ebx,kernel_bin_addr
+  ; 程序头表的条目大小
+  mov dx,[kernel_bin_addr+42]
+  ; 程序头表的条目数量
+  mov cx,[kernel_bin_addr+44]
+  .copy_each_segment:
+    cmp byte [ebx+0],0
+    je .ptnull
+    ; 合法程序表头，开始复制，为函数传参memcpy(dst,src,size)
+    ; size
+    push dword [ebx+16]
+    ; src
+    mov eax,[ebx+4]
+    add eax,kernel_bin_addr
+    push eax
+    ; des:段的虚拟地址
+    push dword [ebx+8]
+    call mem_cpy
+    ; 清空栈参数
+    add esp,12  
+    ; 转向下一个程序头表目录
+    .ptnull:
+      add ebx,edx
+    loop .copy_each_segment
+    ret
+
+; 内存数据拷贝
+mem_cpy:
+  cld
+  push ebp
+  mov ebp,esp
+  push ecx
+  mov edi,[ebp+8]
+  mov esi,[ebp+12]
+  mov ecx,[ebp+16]
+  rep movsb
+  pop ecx
+  pop ebp
+  ret
 ;--------------------------------------
 
 ;--------------------------------------
