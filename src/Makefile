@@ -5,8 +5,11 @@ $(BUILD_DIR)/%.bin: %.S
 
 $(BUILD_DIR)/%.o: %.c
 	gcc -m32 -c -o $@ $<
-$(BUILD_DIR)/kernel.bin: $(BUILD_DIR)/main.o
-	ld -melf_i386 -e main -o $@ $^ -Ttext 0xc0001500
+	
+$(BUILD_DIR)/kernel.bin: main.c print.S
+	nasm -felf -o $(BUILD_DIR)/print.o print.S
+	gcc -m32 -c -o $(BUILD_DIR)/main.o main.c
+	ld -melf_i386 -e main -Ttext 0xc0001500 -o $@ $(BUILD_DIR)/main.o $(BUILD_DIR)/print.o
 
 $(BUILD_DIR)/master.img: $(BUILD_DIR)/mbr.bin $(BUILD_DIR)/loader.bin $(BUILD_DIR)/kernel.bin
 	yes | bximage -q -hd -mode=flat -size=16 $@
