@@ -3,12 +3,16 @@ BUILD_DIR:=../build
 $(BUILD_DIR)/%.bin: %.S
 	nasm -f bin $< -o $@
 
+$(BUILD_DIR)/%.o: %.S
+	nasm -felf -o $@ $<
+
 $(BUILD_DIR)/%.o: %.c
 	gcc -m32 -c -o $@ $<
+
+$(BUILD_DIR)/%.S: %.c
+	gcc -m32 -S -o $@ $<
 	
-$(BUILD_DIR)/kernel.bin: main.c print.S
-	nasm -felf -o $(BUILD_DIR)/print.o print.S
-	gcc -m32 -c -o $(BUILD_DIR)/main.o main.c
+$(BUILD_DIR)/kernel.bin: $(BUILD_DIR)/main.o $(BUILD_DIR)/print.o
 	ld -melf_i386 -e main -Ttext 0xc0001500 -o $@ $(BUILD_DIR)/main.o $(BUILD_DIR)/print.o
 
 $(BUILD_DIR)/master.img: $(BUILD_DIR)/mbr.bin $(BUILD_DIR)/loader.bin $(BUILD_DIR)/kernel.bin
@@ -23,4 +27,4 @@ bochs: bochsrc $(BUILD_DIR)/master.img
 
 .PHONY: clean
 clean:
-	rm -f $(BUILD_DIR)/*.bin $(BUILD_DIR)/*.img $(BUILD_DIR)/*.o
+	rm -f $(BUILD_DIR)/*.*
