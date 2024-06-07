@@ -2,8 +2,10 @@ SELECTOR_VIDEO equ 0x0003<<3
 
 [bits 32]
 section .text
-global put_char
-put_char:
+
+;--------------------------------------
+global print_char
+print_char:
   ; xchg bx,bx
 
   pushad
@@ -107,6 +109,29 @@ put_char:
     mov al,bl
     out dx,al
   
-  .put_char_done:
+  .print_char_done:
     popad
     ret
+;--------------------------------------
+
+;--------------------------------------
+global print_str
+print_str:
+  push ebx
+  push ecx
+  xor ecx,ecx
+  mov ebx,[esp+12]
+  .goon:
+    mov cl,[ebx]
+    cmp cl,0
+    jz .over
+    push ecx
+    call print_char
+    add esp,4
+    inc ebx
+    jmp .goon
+  .over
+    pop ecx
+    pop ebx
+  ret
+;--------------------------------------
