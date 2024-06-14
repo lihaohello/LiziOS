@@ -14,15 +14,18 @@ mov si,boot_msg
 call print
 
 ; 将loader加载器从硬盘读到内存
-mov ax,0
+; 加载器大小为4个扇区，起始扇区为2号，读到loader_base_addr内存处
+; 做磁盘时需要与此规则保持一致
+mov ax,cs
 mov ds,ax
-mov di,0x900
+mov di,loader_base_addr
 mov cx,4
 mov ebx,2
 call read_disk_16
 
 ; 跳转到加载器代码
 jmp loader_base_addr
+
 
 ;--------------------------------------
 ; 定义常量
@@ -38,5 +41,7 @@ boot_msg db 'Booting...',13,10,0
 %include "./incs/read_disk_16.inc"
 ;--------------------------------------
 
+; 填充多余空间
 times 510-($-$$) db 0
+; 最后两个字节分别为55、aa，标识为启动扇区
 dw 0xaa55
