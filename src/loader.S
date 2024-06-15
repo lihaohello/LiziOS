@@ -107,7 +107,11 @@ p_mode_start:
   mov byte [gs:364],'!'
 
 ; 加载内核到内存
-mov edi, 0x70000
+; edi指内核加载到内存的位置
+; ecx指内核起始扇区号
+; bl指内核扇区数量
+; 写入磁盘时需要按照此规则
+mov edi, kernel_bin_addr
 mov ecx, 9
 mov bl, 200
 call read_disk_32
@@ -152,7 +156,10 @@ mov byte [gs:522],'!'
 call kernel_init
 mov esp,0xc009f000
 ; 跳转到内核代码
-jmp 0xc0001500
+call 0xc0001500
+; 死循环
+jmp $
+
 
 ;--------------------------------------
 ; 保护模式下读磁盘

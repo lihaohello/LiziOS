@@ -1,5 +1,6 @@
 #include "print.h"
-int main(void) {
+int main(void)
+{
     print_char('\n');
     print_char('\n');
     print_char('\n');
