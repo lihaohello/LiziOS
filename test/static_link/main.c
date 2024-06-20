@@ -1,12 +1,22 @@
-#include <stdio.h>
-int add(int, int);
-int subtract(int, int);
-double func2(double, double);
+extern int extern_var;
+int global_var = 1;
+static int static_var = 2;
+
+extern int extern_func();
+int global_func() {
+    return 10;
+}
+
+static int static_func() {
+    return 20;
+}
 
 int main() {
-    int a = add(2, 1);
-    int b = subtract(2, 1);
-    double c = func2(2.0, 1.0);
-
-    return 0;
+    int var0 = extern_var;
+    int var1 = global_var;
+    int var2 = static_var;
+    int var3 = extern_func();
+    int var4 = global_func();
+    int var5 = static_func();
+    return var0 + var1 + var2 + var3 + var4 + var5;
 }

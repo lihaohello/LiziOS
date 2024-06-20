@@ -1,16 +1,16 @@
-OBJS:=main.o subtract.o add.o
+OBJS:=main.o external.o
 
 %o:%.c
-	gcc -c -o $@ $<
+	gcc -c -o $@ $< -fno-PIC -g
 
 main:$(OBJS)
-	gcc -o $@ $^
+	gcc -o $@ $^ -no-pie
 
 .PHONY:doc
-doc: main main.o add.o
+doc: main $(OBJS)
 	objdump -d -j.text main > main.text.txt
 	objdump -d -j.text main.o > main.o.text.txt
-	objdump -d -j.text add.o > add.o.text.txt
+	objdump -d -j.text external.o > external.o.text.txt
 
 .PHONY:clean
 clean:
