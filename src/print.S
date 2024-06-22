@@ -132,7 +132,7 @@ print_str:
     add esp,4
     inc ebx
     jmp .goon
-  .over
+  .over:
     pop ecx
     pop ebx
   ret

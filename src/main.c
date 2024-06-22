@@ -1,23 +1,15 @@
+#include "init.h"
 #include "print.h"
-int main(void)
-{
-    print_char('\n');
-    print_char('\n');
-    print_char('\n');
-    print_char('\n');
-    print_char('\n');
-    print_char('I');
-    print_char('\'');
-    print_char('m');
-    print_char(' ');
-    print_char('L');
-    print_char('i');
-    print_char('H');
-    print_char('a');
-    print_char('o');
-    print_char('\n');
 
+int main(void) {
+    print_str("\n\n\n\n\n\n");
     print_str("I\'m making LiziOS!\n");
+    print_str("Let\'s enjoy the journey!\n");
+
+    init_all();
+    asm volatile("sti");
+    while (1) {
+    };
 
     return 0;
 }
