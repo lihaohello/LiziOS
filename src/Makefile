@@ -28,6 +28,13 @@ $(BUILD_DIR)/master.img: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/loader.bin $(BUILD_D
 bochs: bochsrc $(BUILD_DIR)/master.img
 	bochs -f $<
 
+.PHONY: qemu
+qemu: $(BUILD_DIR)/master.img
+	qemu-system-i386 \
+	-m 32M \
+	-boot c \
+	-hda $< 
+
 .PHONY: clean
 clean:
 	rm -f $(BUILD_DIR)/*.*

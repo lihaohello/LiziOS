@@ -48,6 +48,8 @@ mov dx,0
 call position_cursor 
 
 ; 开始切换到保护模式
+; 先关闭中断，不然在qemu中会出错
+cli
 ; 打开A20，以关闭地址回绕机制
 in al,0x92
 or al,0b10
@@ -155,6 +157,7 @@ mov byte [gs:522],'!'
 ; 内核初始化，并跳转到内核代码中执行
 call kernel_init
 mov esp,0xc009f000
+
 ; 跳转到内核代码
 call 0xc0001500
 ; 死循环
