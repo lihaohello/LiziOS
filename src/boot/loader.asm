@@ -44,8 +44,6 @@ mov eax,[total_mem_bytes]
 ; 输出提示信息，重置光标
 mov si,memory_detect_msg
 call print
-mov dx,0
-call position_cursor 
 
 ; 开始切换到保护模式
 ; 先关闭中断，不然在qemu中会出错
