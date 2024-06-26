@@ -32,7 +32,7 @@ jmp loader_base_addr
 ; 加载器在内存中的起点地址
 loader_base_addr equ 0x900
 ; 启动提示字符串
-boot_msg db 'Booting...',13,10,0
+boot_msg db 'LiziOS is booting...',13,10,0
 
 ; 加载封装好的函数
 %include "./incs/position_cursor.inc"

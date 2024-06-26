@@ -66,8 +66,7 @@ jmp dword code_selector:p_mode_start
 ;--------------------------------------
 ; 变量定义和函数引入
 loader_base_addr equ 0x900
-memory_detect_msg db "Memory detection finished.",10,13,0
-loadermsg db '2 loader in real',10, 13,0
+memory_detect_msg db "Memory detected.",10,13,0
 %include "./incs/print.inc"
 %include "./incs/position_cursor.inc"
 kernel_bin_addr equ 0x70000
@@ -84,29 +83,24 @@ p_mode_start:
   mov esp,loader_base_addr
   mov ax,video_selector
   mov gs,ax
-  mov byte [gs:320],'P'
-  mov byte [gs:322],'r'
-  mov byte [gs:324],'o'
-  mov byte [gs:326],'t'
+  mov byte [gs:320],'S'
+  mov byte [gs:322],'e'
+  mov byte [gs:324],'g'
+  mov byte [gs:326],'m'
   mov byte [gs:328],'e'
-  mov byte [gs:330],'c'
+  mov byte [gs:330],'n'
   mov byte [gs:332],'t'
   mov byte [gs:334],'i'
-  mov byte [gs:336],'o'
-  mov byte [gs:338],'n'
+  mov byte [gs:336],'n'
+  mov byte [gs:338],'g'
   mov byte [gs:340],' '
-  mov byte [gs:342],'m'
-  mov byte [gs:344],'o'
-  mov byte [gs:346],'d'
-  mov byte [gs:348],'e'
-  mov byte [gs:350],' '
-  mov byte [gs:352],'o'
-  mov byte [gs:354],'p'
-  mov byte [gs:356],'e'
-  mov byte [gs:358],'n'
-  mov byte [gs:360],'e'
-  mov byte [gs:362],'d'
-  mov byte [gs:364],'!'
+  mov byte [gs:342],'o'
+  mov byte [gs:344],'p'
+  mov byte [gs:346],'e'
+  mov byte [gs:348],'n'
+  mov byte [gs:350],'e'
+  mov byte [gs:352],'d'
+  mov byte [gs:354],'.'
 
 ; 加载内核到内存
 ; edi指内核加载到内存的位置
@@ -134,25 +128,17 @@ lgdt [gdt_ptr]
 mov byte [gs:480],'P'
 mov byte [gs:482],'a'
 mov byte [gs:484],'g'
-mov byte [gs:486],'e'
-mov byte [gs:488],' '
-mov byte [gs:490],'m'
-mov byte [gs:492],'a'
-mov byte [gs:494],'c'
-mov byte [gs:496],'h'
-mov byte [gs:498],'a'
+mov byte [gs:486],'i'
+mov byte [gs:488],'n'
+mov byte [gs:490],'g'
+mov byte [gs:492],' '
+mov byte [gs:494],'o'
+mov byte [gs:496],'p'
+mov byte [gs:498],'e'
 mov byte [gs:500],'n'
-mov byte [gs:502],'i'
-mov byte [gs:504],'s'
-mov byte [gs:506],'m'
-mov byte [gs:508],' '
-mov byte [gs:510],'o'
-mov byte [gs:512],'p'
-mov byte [gs:514],'e'
-mov byte [gs:516],'n'
-mov byte [gs:518],'e'
-mov byte [gs:520],'d'
-mov byte [gs:522],'!'
+mov byte [gs:502],'e'
+mov byte [gs:504],'d'
+mov byte [gs:506],'.'
 
 ; 内核初始化，并跳转到内核代码中执行
 call kernel_init

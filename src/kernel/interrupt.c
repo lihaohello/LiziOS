@@ -39,7 +39,7 @@ void interrupt_init() {
 
     u64 idt_operand = ((sizeof(idt) - 1) | ((u64)(u32)idt << 16));
     asm volatile("lidt %0" : : "m"(idt_operand));
-    print_str("Interrupt_init is finished.\n");
+    print_str("Interrupt is initialized.\n");
 }
 
 /// @brief 1-1.中断描述符表初始化
