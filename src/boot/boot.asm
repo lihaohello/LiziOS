@@ -35,10 +35,10 @@ loader_base_addr equ 0x900
 boot_msg db 'LiziOS is booting...',13,10,0
 
 ; 加载封装好的函数
-%include "./incs/position_cursor.inc"
-%include "./incs/clear_screen.inc"
-%include "./incs/print.inc"
-%include "./incs/read_disk_16.inc"
+%include "./boot/incs/position_cursor.inc"
+%include "./boot/incs/clear_screen.inc"
+%include "./boot/incs/print.inc"
+%include "./boot/incs/read_disk_16.inc"
 ;--------------------------------------
 
 ; 填充多余空间

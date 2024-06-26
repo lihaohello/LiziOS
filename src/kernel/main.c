@@ -1,5 +1,5 @@
-#include "interrupt.h"
-#include "print.h"
+#include "../include/interrupt.h"
+#include "../include/print.h"
 
 int main(void) {
     print_str("\n\nLiziOS is initializing the kernel...\n");

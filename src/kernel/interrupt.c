@@ -1,7 +1,7 @@
-#include "interrupt.h"
-#include "io.h"
-#include "print.h"
-#include "types.h"
+#include "../include/interrupt.h"
+#include "../include/io.h"
+#include "../include/print.h"
+#include "../include/types.h"
 
 // 常量定义
 #define SELECTOR_K_CODE 0b1000

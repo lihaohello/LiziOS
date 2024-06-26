@@ -65,8 +65,8 @@ jmp dword code_selector:p_mode_start
 ; 变量定义和函数引入
 loader_base_addr equ 0x900
 memory_detect_msg db "Memory detected.",10,13,0
-%include "./incs/print.inc"
-%include "./incs/position_cursor.inc"
+%include "./boot/incs/print.inc"
+%include "./boot/incs/position_cursor.inc"
 kernel_bin_addr equ 0x70000
 ;--------------------------------------
 
