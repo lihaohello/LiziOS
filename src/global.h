@@ -1,7 +1,0 @@
-#ifndef __KERNEL_GLOBAL_H
-#define __KERNEL_GLOBAL_H
-
-#define SELECTOR_K_CODE 0b1000
-#define IDT_DESC_ATTR_DPL0 0b10001110
-
-#endif

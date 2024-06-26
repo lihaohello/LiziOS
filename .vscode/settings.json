@@ -1,8 +1,12 @@
 {
   "files.associations": {
     "inttypes.h": "c",
-    "stdint.h": "c",
     "stdint-gcc.h": "c",
-    "print.h": "c"
+    "print.h": "c",
+    "init.h": "c",
+    "interrupt.h": "c",
+    "stdio.h": "c",
+    "global.h": "c",
+    "types.h": "c"
   }
 }
