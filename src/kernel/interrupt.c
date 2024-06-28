@@ -3,6 +3,7 @@
 #include "../include/print.h"
 #include "../include/types.h"
 
+// -----------------------------------------------------------------------
 // 常量定义
 #define SELECTOR_K_CODE 0b1000
 #define IDT_DESC_ATTR_DPL0 0b10001110
@@ -24,15 +25,18 @@ static void idt_init();
 static void make_interrupt_descriptor(struct interrupt_descriptor* p_gdesc,
                                       u8 attr,
                                       interrupt_handler function);
-void default_interrupt_handler();
+static void default_interrupt_handler();
 static void clock_interrupt_handler();
-
-// 定义C语言中断处理函数，供汇编代码的调用
-interrupt_handler c_interrupt_entry_table[IDT_DESC_CNT];
 
 // 外部变量声明
 extern interrupt_handler real_interrupt_entry_table[IDT_DESC_CNT];
 
+// 定义C语言中断处理函数，供汇编代码的调用
+interrupt_handler c_interrupt_entry_table[IDT_DESC_CNT];
+// -----------------------------------------------------------------------
+
+// -----------------------------------------------------------------------
+// 中断初始化函数
 /// @brief 1.中断初始化
 void interrupt_init() {
     pic_init();
@@ -97,15 +101,19 @@ static void make_interrupt_descriptor(struct interrupt_descriptor* p_descriptor,
     p_descriptor->attribute = attr;
     p_descriptor->func_offset_high_word = ((u32)function & 0xFFFF0000) >> 16;
 }
+// -----------------------------------------------------------------------
 
 // -----------------------------------------------------------------------
-// 定义中断处理的具体逻辑
+// 中断具体处理逻辑
 /// @brief 默认中断处理函数
-void default_interrupt_handler() {
+static void default_interrupt_handler() {
     print_str("default_interrupt_handler\n");
 }
 
+/// @brief 时钟中断处理函数
 static void clock_interrupt_handler() {
     print_str("clock interruption occured!\n");
 }
 // -----------------------------------------------------------------------
+
+
