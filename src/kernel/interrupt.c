@@ -21,10 +21,9 @@ struct interrupt_descriptor {
 static struct interrupt_descriptor idt[IDT_DESC_CNT];
 static void pic_init();
 static void idt_init();
-static void make_interrupt_descriptor(
-    struct interrupt_descriptor* p_gdesc,
-    u8 attr,
-    interrupt_handler function);
+static void make_interrupt_descriptor(struct interrupt_descriptor* p_gdesc,
+                                      u8 attr,
+                                      interrupt_handler function);
 void default_interrupt_handler();
 static void clock_interrupt_handler();
 
@@ -78,7 +77,7 @@ static void idt_init() {
 
     for (int i = 0; i < IDT_DESC_CNT; i++)
         make_interrupt_descriptor(&idt[i], IDT_DESC_ATTR_DPL0,
-                                     real_interrupt_entry_table[i]);
+                                  real_interrupt_entry_table[i]);
 
     u64 idt_operand = ((sizeof(idt) - 1) | ((u64)((u32)idt << 16)));
     asm volatile("lidt %0" : : "m"(idt_operand));
@@ -86,18 +85,17 @@ static void idt_init() {
 }
 
 /// @brief 1-1-1.创建中断描述符
-/// @param p_gdesc
+/// @param p_descriptor
 /// @param attr
 /// @param function
-static void make_interrupt_descriptor(
-    struct interrupt_descriptor* p_gdesc,
-    u8 attr,
-    interrupt_handler function) {
-    p_gdesc->func_offset_low_word = (u32)function & 0x0000FFFF;
-    p_gdesc->selector = SELECTOR_K_CODE;
-    p_gdesc->dcount = 0;
-    p_gdesc->attribute = attr;
-    p_gdesc->func_offset_high_word = ((u32)function & 0xFFFF0000) >> 16;
+static void make_interrupt_descriptor(struct interrupt_descriptor* p_descriptor,
+                                      u8 attr,
+                                      interrupt_handler function) {
+    p_descriptor->func_offset_low_word = (u32)function & 0x0000FFFF;
+    p_descriptor->selector = SELECTOR_K_CODE;
+    p_descriptor->dcount = 0;
+    p_descriptor->attribute = attr;
+    p_descriptor->func_offset_high_word = ((u32)function & 0xFFFF0000) >> 16;
 }
 
 // -----------------------------------------------------------------------
@@ -108,6 +106,6 @@ void default_interrupt_handler() {
 }
 
 static void clock_interrupt_handler() {
-    print_str("clock_interrupt_handler\n");
+    print_str("clock interruption occured!\n");
 }
 // -----------------------------------------------------------------------

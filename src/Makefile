@@ -1,6 +1,7 @@
 BUILD_DIR:=../build/
 BOOT_DIR:=boot/
 KERNEL_DIR:=kernel/
+KERNEL_OBJS:=$(BUILD_DIR)main.o $(BUILD_DIR)interrupt.o $(BUILD_DIR)print.o $(BUILD_DIR)handler.o $(BUILD_DIR)timer.o
 
 $(BUILD_DIR)%.bin: $(BOOT_DIR)%.asm
 	nasm -f bin $< -o $@
@@ -11,7 +12,7 @@ $(BUILD_DIR)%.o: $(KERNEL_DIR)%.asm
 $(BUILD_DIR)%.o: $(KERNEL_DIR)%.c
 	gcc -m32 -c -o $@ $< -fno-builtin -fno-stack-protector
 
-$(BUILD_DIR)kernel.bin: $(BUILD_DIR)main.o $(BUILD_DIR)interrupt.o $(BUILD_DIR)print.o $(BUILD_DIR)handler.o 
+$(BUILD_DIR)kernel.bin: $(KERNEL_OBJS)
 	ld -melf_i386 -e main -Ttext 0xc0001500 -o $@ $^
 
 $(BUILD_DIR)master.img: $(BUILD_DIR)boot.bin $(BUILD_DIR)loader.bin $(BUILD_DIR)kernel.bin

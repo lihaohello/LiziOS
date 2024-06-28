@@ -9,7 +9,6 @@ real_interrupt_entry_table:
 ; 汇编宏定义
 %macro VECTOR 2
 section .text
-extern c_interrupt_entry_table
 intr%1entry:
    %ifn %2
       push 0
