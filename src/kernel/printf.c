@@ -1,5 +1,5 @@
-#include "../include/stdio.h"
 #include "../include/stdarg.h"
+#include "../include/stdio.h"
 
 static char buf[1024];
 
