@@ -4,8 +4,8 @@
 *.img
 *.so
 *.out
-main
 ../build/*.S
 ./link/*.txt
 
 # 排除的文件
+bx_enh_dbg.ini
