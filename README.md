@@ -1,3 +1,9 @@
+# 项目简介
+LiziOS项目旨在用尽可能少的代码、尽可能优雅的方式实现一个玩具操作系统，一窥操作系统的奥秘！
+
+# 作者简介
+李浩，个人主页：lihaohello.top
+
 # 环境搭建
 ## Ubuntu 16、Ubuntu 18
 ```shell
@@ -149,4 +155,14 @@ com4: enabled=false
 - 命令行生成硬盘
 ```shell
 bximage -func=create -hd=16 -imgmode=flat -q $@
+```
+
+## qemu配置
+- 调试命令行
+```shell
+.PHONY: qemu qemu-system-i386 -m 32M -boot c -hda master.img
+```
+- Arch Linux安装x86凭条模拟器
+```shell
+yay -S qemu-desktop
 ```
