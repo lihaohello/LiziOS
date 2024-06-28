@@ -9,7 +9,7 @@
 #define IDT_DESC_CNT 0x21
 
 /// @brief 中断描述符结构体
-struct gate_desc {
+struct interruption_descriptor {
     u16 func_offset_low_word;
     u16 selector;
     u8 dcount;
@@ -18,15 +18,21 @@ struct gate_desc {
 };
 
 // 内部链接的变量和函数声明
-static struct gate_desc idt[IDT_DESC_CNT];
+static struct interruption_descriptor idt[IDT_DESC_CNT];
 static void pic_init();
 static void idt_init();
-static void make_idt_desc(struct gate_desc* p_gdesc,
-                          u8 attr,
-                          intr_handler function);
+static void make_interruption_descriptor(
+    struct interruption_descriptor* p_gdesc,
+    u8 attr,
+    interruption_handler function);
+void default_interruption_handler();
+static void clock_interruption_handler();
+
+// 定义C语言中断处理函数，供汇编代码的调用
+interruption_handler c_interruption_entry_table[IDT_DESC_CNT];
 
 // 外部变量声明
-extern intr_handler intr_entry_table[IDT_DESC_CNT];
+extern interruption_handler real_interruption_entry_table[IDT_DESC_CNT];
 
 /// @brief 1.中断初始化
 void interrupt_init() {
@@ -61,8 +67,18 @@ static void pic_init() {
 
 /// @brief 1-1.中断描述符表初始化
 static void idt_init() {
+    // 先为c_interruption_entry_table数组赋值
+    for (int i = 0; i < IDT_DESC_CNT; i++) {
+        if (i == 0x20) {
+            c_interruption_entry_table[i] = clock_interruption_handler;
+            continue;
+        }
+        c_interruption_entry_table[i] = default_interruption_handler;
+    }
+
     for (int i = 0; i < IDT_DESC_CNT; i++)
-        make_idt_desc(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[i]);
+        make_interruption_descriptor(&idt[i], IDT_DESC_ATTR_DPL0,
+                                     real_interruption_entry_table[i]);
 
     u64 idt_operand = ((sizeof(idt) - 1) | ((u64)((u32)idt << 16)));
     asm volatile("lidt %0" : : "m"(idt_operand));
@@ -73,12 +89,25 @@ static void idt_init() {
 /// @param p_gdesc
 /// @param attr
 /// @param function
-static void make_idt_desc(struct gate_desc* p_gdesc,
-                          u8 attr,
-                          intr_handler function) {
+static void make_interruption_descriptor(
+    struct interruption_descriptor* p_gdesc,
+    u8 attr,
+    interruption_handler function) {
     p_gdesc->func_offset_low_word = (u32)function & 0x0000FFFF;
     p_gdesc->selector = SELECTOR_K_CODE;
     p_gdesc->dcount = 0;
     p_gdesc->attribute = attr;
     p_gdesc->func_offset_high_word = ((u32)function & 0xFFFF0000) >> 16;
 }
+
+// -----------------------------------------------------------------------
+// 定义中断处理的具体逻辑
+/// @brief 默认中断处理函数
+void default_interruption_handler() {
+    print_str("default_interruption_handler\n");
+}
+
+static void clock_interruption_handler() {
+    print_str("clock_interruption_handler\n");
+}
+// -----------------------------------------------------------------------

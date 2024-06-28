@@ -15,7 +15,7 @@ $(BUILD_DIR)kernel.bin: $(BUILD_DIR)main.o $(BUILD_DIR)interrupt.o $(BUILD_DIR)p
 	ld -melf_i386 -e main -Ttext 0xc0001500 -o $@ $^
 
 $(BUILD_DIR)master.img: $(BUILD_DIR)boot.bin $(BUILD_DIR)loader.bin $(BUILD_DIR)kernel.bin
-	bximage -func=create -hd=16 -imgmode=flat -q $@
+	yes | bximage -func=create -hd=16 -imgmode=flat -q $@
 	dd if=$(BUILD_DIR)boot.bin of=$@ bs=512 count=1 conv=notrunc
 	dd if=$(BUILD_DIR)loader.bin of=$@ bs=512 count=4 seek=2 conv=notrunc
 	dd if=$(BUILD_DIR)kernel.bin of=$@ bs=512 count=200 seek=9 conv=notrunc

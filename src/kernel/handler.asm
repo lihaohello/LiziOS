@@ -1,28 +1,42 @@
 [bits 32]
 section .data
-idt_msg db "Interrup occurred!",0xa,0
-global intr_entry_table
-intr_entry_table:
+extern c_interruption_entry_table
+
+; 定义中断描述符表的起点
+global real_interruption_entry_table
+real_interruption_entry_table:
 
 ; 汇编宏定义
-%define cpu_error_code nop
-%define no_cpu_error_code push 0
-
-extern print_str
 %macro VECTOR 2
 section .text
+extern c_interruption_entry_table
 intr%1entry:
-   %2
+   %ifn %2
+      push 0
+   %endif
+
+   ; 进入中断执行逻辑之前，先保存执行现场
+   push ds
+   push es
+   push fs
+   push gs
+   pushad
 
    ; 执行具体的中断处理函数
-   push idt_msg
-   call print_str
-   add esp,4
+   call [c_interruption_entry_table+4*%1]
 
    ; 结束中断
    mov al,0x20
    out 0xa0,al
    out 0x20,al
+
+   ; 还原执行现场
+   popad
+   pop gs
+   pop fs
+   pop es
+   pop ds
+
    ; 将错误码出栈
    add esp,4
    ; 返回中断函数执行前的地址
@@ -32,37 +46,38 @@ section .data
    dd intr%1entry
 %endmacro
 
+
 ; 定义0~32号中断处理函数（不是可屏蔽中断）
-VECTOR 0x00,no_cpu_error_code
-VECTOR 0x01,no_cpu_error_code
-VECTOR 0x02,no_cpu_error_code
-VECTOR 0x03,no_cpu_error_code 
-VECTOR 0x04,no_cpu_error_code
-VECTOR 0x05,no_cpu_error_code
-VECTOR 0x06,no_cpu_error_code
-VECTOR 0x07,no_cpu_error_code 
-VECTOR 0x08,cpu_error_code
-VECTOR 0x09,no_cpu_error_code
-VECTOR 0x0a,cpu_error_code
-VECTOR 0x0b,cpu_error_code 
-VECTOR 0x0c,no_cpu_error_code
-VECTOR 0x0d,cpu_error_code
-VECTOR 0x0e,cpu_error_code
-VECTOR 0x0f,no_cpu_error_code 
-VECTOR 0x10,no_cpu_error_code
-VECTOR 0x11,cpu_error_code
-VECTOR 0x12,no_cpu_error_code
-VECTOR 0x13,no_cpu_error_code 
-VECTOR 0x14,no_cpu_error_code
-VECTOR 0x15,no_cpu_error_code
-VECTOR 0x16,no_cpu_error_code
-VECTOR 0x17,no_cpu_error_code 
-VECTOR 0x18,cpu_error_code
-VECTOR 0x19,no_cpu_error_code
-VECTOR 0x1a,cpu_error_code
-VECTOR 0x1b,cpu_error_code 
-VECTOR 0x1c,no_cpu_error_code
-VECTOR 0x1d,cpu_error_code
-VECTOR 0x1e,cpu_error_code
-VECTOR 0x1f,no_cpu_error_code 
-VECTOR 0x20,no_cpu_error_code
+VECTOR 0x00,0
+VECTOR 0x01,0
+VECTOR 0x02,0
+VECTOR 0x03,0 
+VECTOR 0x04,0
+VECTOR 0x05,0
+VECTOR 0x06,0
+VECTOR 0x07,0 
+VECTOR 0x08,1
+VECTOR 0x09,0
+VECTOR 0x0a,1
+VECTOR 0x0b,1 
+VECTOR 0x0c,0
+VECTOR 0x0d,1
+VECTOR 0x0e,1
+VECTOR 0x0f,0 
+VECTOR 0x10,0
+VECTOR 0x11,1
+VECTOR 0x12,0
+VECTOR 0x13,0 
+VECTOR 0x14,0
+VECTOR 0x15,0
+VECTOR 0x16,0
+VECTOR 0x17,0 
+VECTOR 0x18,1
+VECTOR 0x19,0
+VECTOR 0x1a,1
+VECTOR 0x1b,1 
+VECTOR 0x1c,0
+VECTOR 0x1d,1
+VECTOR 0x1e,1
+VECTOR 0x1f,0 
+VECTOR 0x20,0
