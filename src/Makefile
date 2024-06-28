@@ -1,7 +1,8 @@
 BUILD_DIR:=../build/
 BOOT_DIR:=boot/
 KERNEL_DIR:=kernel/
-KERNEL_OBJS:=$(BUILD_DIR)main.o $(BUILD_DIR)interrupt.o $(BUILD_DIR)print.o $(BUILD_DIR)handler.o $(BUILD_DIR)timer.o
+KERNEL_OBJS:=$(BUILD_DIR)main.o $(BUILD_DIR)interrupt.o $(BUILD_DIR)print.o \
+$(BUILD_DIR)handler.o $(BUILD_DIR)timer.o $(BUILD_DIR)assert.o
 
 $(BUILD_DIR)%.bin: $(BOOT_DIR)%.asm
 	nasm -f bin $< -o $@
