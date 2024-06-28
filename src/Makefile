@@ -26,7 +26,7 @@ check:
 
 .PHONY: bochs
 bochs: bochsrc $(BUILD_DIR)master.img
-	bochs -f $<
+	bochs -f $< -q
 
 .PHONY: qemu
 qemu: $(BUILD_DIR)master.img
