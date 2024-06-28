@@ -1,6 +1,6 @@
 #include "../include/timer.h"
 #include "../include/io.h"
-#include "../include/print.h"
+#include "../include/stdio.h"
 #include "../include/types.h"
 
 static void pic_init()
@@ -16,9 +16,8 @@ static void pic_init()
 // 初始化PIT8253
 void timer_init()
 {
-    print_str("timer_init start\n");
     // 设置8253的定时周期,也就是发中断的周期
     pic_init();
 
-    print_str("timer_init done\n");
+    printf("timer_init is done\n");
 }

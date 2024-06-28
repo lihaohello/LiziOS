@@ -1,6 +1,7 @@
 #include "../include/interrupt.h"
+#include "../include/assert.h"
 #include "../include/io.h"
-#include "../include/print.h"
+#include "../include/stdio.h"
 #include "../include/types.h"
 
 // -----------------------------------------------------------------------
@@ -33,8 +34,6 @@ extern interrupt_handler real_interrupt_entry_table[interrupt_num];
 
 // 定义C语言中断处理函数，供汇编代码的调用
 interrupt_handler c_interrupt_entry_table[interrupt_num];
-// 定义0~0x20号中断的名称，用于打印调试
-char* interrupt_name[interrupt_num];
 // -----------------------------------------------------------------------
 
 // -----------------------------------------------------------------------
@@ -44,7 +43,7 @@ void interrupt_init() {
     pic_init();
     idt_init();
 
-    print_str("Interrupt is initialized.\n");
+    printf("interrupt_init is done.\n");
 }
 
 /// @brief 1-2.中断控制器初始化
@@ -78,40 +77,6 @@ static void idt_init() {
         if (i == 0x20)
             c_interrupt_entry_table[i] = clock_interrupt_handler;
     }
-    // 为各中断的名字赋值
-    interrupt_name[0] = "0x00";
-    interrupt_name[1] = "0x01";
-    interrupt_name[2] = "0x02";
-    interrupt_name[3] = "0x03";
-    interrupt_name[4] = "0x04";
-    interrupt_name[5] = "0x05";
-    interrupt_name[6] = "0x06";
-    interrupt_name[7] = "0x07";
-    interrupt_name[8] = "0x08";
-    interrupt_name[9] = "0x09";
-    interrupt_name[10] = "0x0a";
-    interrupt_name[11] = "0x0b";
-    interrupt_name[12] = "0x0c";
-    interrupt_name[13] = "0x0d";
-    interrupt_name[14] = "0x0e";
-    interrupt_name[15] = "0x0f";
-    interrupt_name[16] = "0x10";
-    interrupt_name[17] = "0x11";
-    interrupt_name[18] = "0x12";
-    interrupt_name[19] = "0x13";
-    interrupt_name[20] = "0x14";
-    interrupt_name[21] = "0x15";
-    interrupt_name[22] = "0x16";
-    interrupt_name[23] = "0x17";
-    interrupt_name[24] = "0x18";
-    interrupt_name[25] = "0x19";
-    interrupt_name[26] = "0x1a";
-    interrupt_name[27] = "0x1b";
-    interrupt_name[28] = "0x1c";
-    interrupt_name[29] = "0x1d";
-    interrupt_name[30] = "0x1e";
-    interrupt_name[31] = "0x1f";
-    interrupt_name[32] = "0x20";
 
     for (int i = 0; i < interrupt_num; i++)
         make_interrupt_descriptor(&idt[i], interrupt_desc_attr,
@@ -142,14 +107,15 @@ static void make_interrupt_descriptor(struct interrupt_descriptor* p_descriptor,
 // 中断具体处理逻辑
 /// @brief 默认中断处理函数
 static void default_interrupt_handler(u32 i) {
-    print_str("interrupt number is: \t");
-    print_str(interrupt_name[i]);
-    print_str("\n");
+    // 当前除了时钟中断外，没有开启其它的中断，所以不会进到这里
+    ASSERT(0 > 1);
+
+    printf("the interrup id is %d\n", i);
 }
 
 /// @brief 时钟中断处理函数
 static void clock_interrupt_handler() {
-    print_str("clock interruption occured!\n");
+    printf("clock interruption occured!\n");
 }
 // -----------------------------------------------------------------------
 

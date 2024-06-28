@@ -1,5 +1,5 @@
 #include "../include/assert.h"
-#include "../include/print.h"
+#include "../include/stdio.h"
 #include "../include/interrupt.h"
 
 void panic_spin(char* filename,

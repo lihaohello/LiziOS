@@ -7,6 +7,12 @@
     "interrupt.h": "c",
     "stdio.h": "c",
     "global.h": "c",
-    "types.h": "c"
+    "types.h": "c",
+    "stdarg.h": "c",
+    "*.tcc": "c",
+    "cstdio": "c",
+    "assert.h": "c",
+    "string.h": "c",
+    "printf.h": "c"
   }
 }
