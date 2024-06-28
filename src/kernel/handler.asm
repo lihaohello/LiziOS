@@ -1,15 +1,15 @@
 [bits 32]
 section .data
-extern c_interruption_entry_table
+extern c_interrupt_entry_table
 
 ; 定义中断描述符表的起点
-global real_interruption_entry_table
-real_interruption_entry_table:
+global real_interrupt_entry_table
+real_interrupt_entry_table:
 
 ; 汇编宏定义
 %macro VECTOR 2
 section .text
-extern c_interruption_entry_table
+extern c_interrupt_entry_table
 intr%1entry:
    %ifn %2
       push 0
@@ -23,7 +23,7 @@ intr%1entry:
    pushad
 
    ; 执行具体的中断处理函数
-   call [c_interruption_entry_table+4*%1]
+   call [c_interrupt_entry_table+4*%1]
 
    ; 结束中断
    mov al,0x20
