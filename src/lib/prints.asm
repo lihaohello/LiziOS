@@ -4,8 +4,7 @@ SELECTOR_VIDEO equ 0x0003<<3
 section .text
 
 ;--------------------------------------
-; 打印字符
-global print_char
+; 打印字符（不暴露该函数，仅供print_str使用）
 print_char:
   ; xchg bx,bx
 
