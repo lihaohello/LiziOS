@@ -11,7 +11,7 @@ int main(void) {
     // 计时器初始化
     timer_init();
 
-    // ASSERT(1 == 2);
+    ASSERT(1 == 2);
 
     while (1) {
     };

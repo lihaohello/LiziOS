@@ -13,6 +13,7 @@
     "cstdio": "c",
     "assert.h": "c",
     "string.h": "c",
-    "printf.h": "c"
+    "printf.h": "c",
+    "stdint.h": "c"
   }
 }

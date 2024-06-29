@@ -22,6 +22,9 @@ typedef unsigned int size_t;
 #define EOS '\0'
 
 // 定义空指针
-#define NULL ((void*)0)
+#define NULL ((void *)0)
+
+// 定义布尔类型
+#define bool int
 
 #endif
