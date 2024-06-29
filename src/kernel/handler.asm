@@ -22,7 +22,9 @@ intr%1entry:
    pushad
 
    ; 执行具体的中断处理函数
+   push %1
    call [c_interrupt_entry_table+4*%1]
+   add esp,4
 
    ; 结束中断
    mov al,0x20

@@ -34,7 +34,8 @@ qemu: $(BUILD_DIR)master.img
 	qemu-system-i386 \
 	-m 32M \
 	-boot c \
-	-hda $< 
+	-hda $< \
+	-S -s
 
 .PHONY: clean
 clean:

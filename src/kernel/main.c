@@ -2,7 +2,8 @@
 #include "../include/print.h"
 #include "../include/timer.h"
 
-int main(void) {
+int main(void)
+{
     print_str("\n\nLiziOS is initializing the kernel...\n");
 
     // 中断初始化
@@ -10,7 +11,8 @@ int main(void) {
     // 计时器初始化
     timer_init();
 
-    while (1) {
+    while (1)
+    {
     };
 
     return 0;
