@@ -1,5 +1,6 @@
 #include "../include/assert.h"
 #include "../include/interrupt.h"
+#include "../include/memory.h"
 #include "../include/stdio.h"
 #include "../include/timer.h"
 
@@ -10,6 +11,8 @@ int main(void) {
     interrupt_init();
     // 计时器初始化
     timer_init();
+    // 内存管理系统初始化
+    mem_init();
 
     ASSERT(1 == 2);
 

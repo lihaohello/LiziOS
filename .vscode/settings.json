@@ -14,6 +14,9 @@
     "assert.h": "c",
     "string.h": "c",
     "printf.h": "c",
-    "stdint.h": "c"
+    "stdint.h": "c",
+    "bitmap.h": "c",
+    "memory.h": "c",
+    "timer.h": "c"
   }
 }

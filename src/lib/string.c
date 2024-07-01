@@ -97,6 +97,11 @@ int memcmp(const void* lhs, const void* rhs, size_t count) {
     return *lptr < *rptr ? -1 : *lptr > *rptr;
 }
 
+/// @brief 内存设置
+/// @param dest 目标内存空间的起始位置
+/// @param ch 要初始化的值
+/// @param count 字节数
+/// @return 
 void* memset(void* dest, int ch, size_t count) {
     char* ptr = dest;
     while (count--) {

@@ -5,7 +5,8 @@ LIB_DIR:=lib/
 
 KERNEL_OBJS:=$(BUILD_DIR)main.o $(BUILD_DIR)interrupt.o $(BUILD_DIR)prints.o \
 $(BUILD_DIR)interrupt_handler.o $(BUILD_DIR)timer.o $(BUILD_DIR)assert.o \
-$(BUILD_DIR)printf.o $(BUILD_DIR)string.o $(BUILD_DIR)vsprintf.o
+$(BUILD_DIR)printf.o $(BUILD_DIR)string.o $(BUILD_DIR)vsprintf.o \
+$(BUILD_DIR)memory.o $(BUILD_DIR)bitmap.o
 
 
 $(BUILD_DIR)%.bin: $(BOOT_DIR)%.asm
@@ -29,7 +30,7 @@ $(BUILD_DIR)kernel: $(KERNEL_OBJS)
 $(BUILD_DIR)master.img: $(BUILD_DIR)boot.bin $(BUILD_DIR)loader.bin $(BUILD_DIR)kernel
 	yes | bximage -func=create -hd=16 -imgmode=flat -q $@
 	dd if=$(BUILD_DIR)boot.bin of=$@ bs=512 count=1 conv=notrunc
-	dd if=$(BUILD_DIR)loader.bin of=$@ bs=512 count=4 seek=2 conv=notrunc
+	dd if=$(BUILD_DIR)loader.bin of=$@ bs=512 count=2 seek=2 conv=notrunc
 	dd if=$(BUILD_DIR)kernel of=$@ bs=512 count=200 seek=9 conv=notrunc
 
 .PHONY: check

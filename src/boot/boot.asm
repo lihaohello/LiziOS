@@ -19,7 +19,7 @@ call print
 mov ax,cs
 mov ds,ax
 mov di,loader_base_addr
-mov cx,4
+mov cx,2
 mov ebx,2
 call read_disk_16
 
