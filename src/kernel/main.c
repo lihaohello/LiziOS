@@ -4,6 +4,8 @@
 #include "../include/stdio.h"
 #include "../include/timer.h"
 
+
+
 int main(void) {
     printf("\n\nLiziOS is initializing the kernel...\n");
 

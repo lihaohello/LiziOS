@@ -1,6 +1,8 @@
 #include "../include/memory.h"
 #include "../include/stdio.h"
 
+#define BOCHS_BREAK asm volatile("xchg %bx,%bx");
+
 #define PG_SIZE 4096
 #define MEM_BITMAP_BASE 0xc009a000
 #define K_HEAP_START 0xc0100000
@@ -55,7 +57,7 @@ static void mem_pool_init(uint32_t all_mem) {
 
 void mem_init() {
     printf("mem_init start\n");
-    uint32_t mem_bytes_total = (*(uint32_t*)(0xb00));
+    uint32_t mem_bytes_total = (*(uint32_t*)(0xd00));
     mem_pool_init(mem_bytes_total);
     printf("mem_init done\n");
 }

@@ -39,6 +39,7 @@ get_total_mem_bytes:
   .next_ards:
     loop .find_max_mem_area
   mov [total_mem_bytes],edx
+  mov [0xd00],edx
 ; 查看内存容量
 mov eax,[total_mem_bytes]
 ; 输出提示信息，重置光标
