@@ -16,6 +16,10 @@ int main(void) {
     // 内存管理系统初始化
     mem_init();
 
+    // 分配虚拟地址
+    void* addr = get_kernel_pages(3);
+    printf("addr is: %x", (u32)addr);
+
     ASSERT(1 == 2);
 
     while (1) {

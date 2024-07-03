@@ -3,14 +3,24 @@
 #include "bitmap.h"
 #include "types.h"
 
-enum pool_type { KERNEL_POOL, USER_POOL };
+/// @brief 内存池种类
+enum pool_type {
+    /// @brief 内核内存池
+    KERNEL_POOL,
+    /// @brief 用户内存池
+    USER_POOL
+};
 
+/// @brief 虚拟内存管理
 struct virtual_addr {
     struct bitmap addr_bitmap;
     u32 addr_start;
 };
 
 extern struct pool kernel_pool, user_pool;
+
+void* malloc_page(enum pool_type, u32);
+void* get_kernel_pages(u32);
 void mem_init();
 
 #endif
