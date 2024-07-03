@@ -32,35 +32,11 @@ void bitmap_set_bit(struct bitmap* bitmap, u32 bit_index, i8 value) {
         bitmap->bits[index0] &= ~(1 << index1);
 }
 
-/*
-/// @brief 在位图中申请连续的一定数量的位
+/// @brief 在位图中查找count个空位
 /// @param bitmap
 /// @param count
 /// @return
-int bitmap_request_bits(struct bitmap* bitmap, u32 bit_count) {
-    // 本算法有待改进和测试
-    u32 left = 0;
-    u32 right = 0;
-    u32 n = 0;
-    while (right < bitmap->length && n < bit_count) {
-        if (bitmap_get_bit(bitmap, left) == 1) {
-            left++;
-            right = left;
-            continue;
-        }
-        if (bitmap_get_bit(bitmap, ++right) == 0)
-            n = right - left + 1;
-        else
-            left = right;
-    }
-
-    if (right == bitmap->length)
-        return -1;
-    return left;
-}
-*/
-
-int bitmap_request_bits(struct bitmap* bitmap, u32 cnt) {
+int bitmap_request_bits(struct bitmap* bitmap, u32 count) {
     u32 idx_byte = 0;
     while ((0xff == bitmap->bits[idx_byte]) && (idx_byte < bitmap->length)) {
         idx_byte++;
@@ -77,7 +53,7 @@ int bitmap_request_bits(struct bitmap* bitmap, u32 cnt) {
     }
 
     int bit_idx_start = idx_byte * 8 + idx_bit;
-    if (cnt == 1) {
+    if (count == 1) {
         return bit_idx_start;
     }
 
@@ -92,8 +68,8 @@ int bitmap_request_bits(struct bitmap* bitmap, u32 cnt) {
         } else {
             count = 0;
         }
-        if (count == cnt) {
-            bit_idx_start = next_bit - cnt + 1;
+        if (count == count) {
+            bit_idx_start = next_bit - count + 1;
             break;
         }
         next_bit++;
