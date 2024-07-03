@@ -6,9 +6,9 @@
 /// @brief 内存池种类
 enum pool_type {
     /// @brief 内核内存池
-    KERNEL_POOL,
+    KERNEL_POOL = 1,
     /// @brief 用户内存池
-    USER_POOL
+    USER_POOL = 2
 };
 
 /// @brief 虚拟内存管理

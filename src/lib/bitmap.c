@@ -1,4 +1,5 @@
 #include "../include/bitmap.h"
+#include "../include/assert.h"
 #include "../include/string.h"
 
 /// @brief 初始化位图
@@ -31,11 +32,13 @@ void bitmap_set_bit(struct bitmap* bitmap, u32 bit_index, i8 value) {
         bitmap->bits[index0] &= ~(1 << index1);
 }
 
+/*
 /// @brief 在位图中申请连续的一定数量的位
 /// @param bitmap
 /// @param count
 /// @return
 int bitmap_request_bits(struct bitmap* bitmap, u32 bit_count) {
+    // 本算法有待改进和测试
     u32 left = 0;
     u32 right = 0;
     u32 n = 0;
@@ -54,4 +57,46 @@ int bitmap_request_bits(struct bitmap* bitmap, u32 bit_count) {
     if (right == bitmap->length)
         return -1;
     return left;
+}
+*/
+
+int bitmap_request_bits(struct bitmap* bitmap, u32 cnt) {
+    u32 idx_byte = 0;
+    while ((0xff == bitmap->bits[idx_byte]) && (idx_byte < bitmap->length)) {
+        idx_byte++;
+    }
+
+    ASSERT(idx_byte < bitmap->length);
+    if (idx_byte == bitmap->length) {
+        return -1;
+    }
+
+    int idx_bit = 0;
+    while ((uint8_t)(1 << idx_bit) & bitmap->bits[idx_byte]) {
+        idx_bit++;
+    }
+
+    int bit_idx_start = idx_byte * 8 + idx_bit;
+    if (cnt == 1) {
+        return bit_idx_start;
+    }
+
+    u32 bit_left = (bitmap->length * 8 - bit_idx_start);
+    u32 next_bit = bit_idx_start + 1;
+    u32 count = 1;
+
+    bit_idx_start = -1;
+    while (bit_left-- > 0) {
+        if (!(bitmap_get_bit(bitmap, next_bit))) {
+            count++;
+        } else {
+            count = 0;
+        }
+        if (count == cnt) {
+            bit_idx_start = next_bit - cnt + 1;
+            break;
+        }
+        next_bit++;
+    }
+    return bit_idx_start;
 }
