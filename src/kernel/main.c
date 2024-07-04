@@ -3,8 +3,9 @@
 #include "../include/memory.h"
 #include "../include/stdio.h"
 #include "../include/timer.h"
+#include "../include/thread.h"
 
-
+void k_thread_a(void*);
 
 int main(void) {
     printf("\n\nLiziOS is initializing the kernel...\n");
@@ -16,14 +17,18 @@ int main(void) {
     // 内存管理系统初始化
     mem_init();
 
-    // 分配虚拟地址
-    void* addr = get_kernel_pages(3);
-    printf("addr is: %x", (u32)addr);
-
-    ASSERT(1 == 2);
+    intr_disable();
+    thread_start("k_thread_a", 31, k_thread_a, "argA ");
 
     while (1) {
     };
 
     return 0;
+}
+
+void k_thread_a(void* arg) {
+    char* para = arg;
+    while (1) {
+        printf(para);
+    }
 }

@@ -36,7 +36,7 @@ void bitmap_set_bit(struct bitmap* bitmap, u32 bit_index, i8 value) {
 /// @param bitmap
 /// @param count
 /// @return
-int bitmap_request_bits(struct bitmap* bitmap, u32 count) {
+int bitmap_request_bits(struct bitmap* bitmap, u32 n) {
     u32 idx_byte = 0;
     while ((0xff == bitmap->bits[idx_byte]) && (idx_byte < bitmap->length)) {
         idx_byte++;
@@ -53,7 +53,7 @@ int bitmap_request_bits(struct bitmap* bitmap, u32 count) {
     }
 
     int bit_idx_start = idx_byte * 8 + idx_bit;
-    if (count == 1) {
+    if (n == 1) {
         return bit_idx_start;
     }
 
@@ -68,8 +68,8 @@ int bitmap_request_bits(struct bitmap* bitmap, u32 count) {
         } else {
             count = 0;
         }
-        if (count == count) {
-            bit_idx_start = next_bit - count + 1;
+        if (count == n) {
+            bit_idx_start = next_bit - n + 1;
             break;
         }
         next_bit++;
