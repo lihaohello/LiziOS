@@ -11,7 +11,7 @@ int main(void)
     printf("\n\nLiziOS is initializing the kernel...\n");
 
     // 中断初始化
-    interrupt_init();
+    // interrupt_init();
     // 计时器初始化
     // timer_init();
     // 内存管理系统初始化
@@ -20,6 +20,7 @@ int main(void)
     thread_init();
 
     thread_start("k_thread_a", 31, k_thread_a, "A ");
+    thread_start("k_thread_b", 31, k_thread_a, "B ");
 
     while (1){
         printf("0 ");
