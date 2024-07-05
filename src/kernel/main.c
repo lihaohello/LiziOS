@@ -5,9 +5,11 @@
 #include "../include/timer.h"
 #include "../include/thread.h"
 
-void k_thread_a(void*);
+void k_thread_a(void *);
+#define BOCHS_BREAK asm volatile("xchg %bx,%bx");
 
-int main(void) {
+int main(void)
+{
     printf("\n\nLiziOS is initializing the kernel...\n");
 
     // 中断初始化
@@ -15,20 +17,23 @@ int main(void) {
     // 计时器初始化
     timer_init();
     // 内存管理系统初始化
-    mem_init();
+    memory_init();
+    // 主进程初始化
+    thread_init();
 
-    // intr_disable();
-    // thread_start("k_thread_a", 31, k_thread_a, "argA ");
+    intr_enable();
+    
+    thread_start("k_thread_a", 31, k_thread_a, "A ");
 
-    while (1) {
-    };
+    while (1)
+        printf("0 ");
 
     return 0;
 }
 
-void k_thread_a(void* arg) {
-    char* para = arg;
-    while (1) {
+void k_thread_a(void *arg)
+{
+    char *para = arg;
+    while (1)
         printf(para);
-    }
 }

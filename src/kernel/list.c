@@ -37,12 +37,8 @@ void list_append(struct list* plist, struct list_elem* elem) {
 }
 
 void list_remove(struct list_elem* pelem) {
-    enum intr_status old_status = intr_disable();
-
     pelem->prev->next = pelem->next;
     pelem->next->prev = pelem->prev;
-
-    intr_set_status(old_status);
 }
 
 /// @brief 删除首节点之后的第一个节点

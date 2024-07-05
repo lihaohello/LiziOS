@@ -8,29 +8,31 @@
 #define PG_SIZE 4096
 #define BOCHS_BREAK asm volatile("xchg %bx,%bx");
 
-struct task_struct* main_thread;
+struct task_struct *main_thread;
 struct list thread_ready_list;
 struct list thread_all_list;
-static struct list_elem* thread_tag;
-extern void switch_to(struct task_struct* cur, struct task_struct* next);
+static struct list_elem *thread_tag;
+extern void switch_to(struct task_struct *cur, struct task_struct *next);
 
 /// @brief 获取当前线程的PCB指针
 /// @return
-struct task_struct* running_thread() {
+struct task_struct *running_thread()
+{
     u32 esp;
     asm volatile("mov %%esp, %0;" : "=g"(esp));
-    return (struct task_struct*)(esp & 0xfffff000);
+    return (struct task_struct *)(esp & 0xfffff000);
 }
 
 /// @brief 由内核线程执行的函数
 /// @param function
 /// @param func_arg
-static void kernel_thread(thread_func* function, void* func_arg) {
-    intr_enable();
+static void kernel_thread(thread_func *function, void *func_arg)
+{
     function(func_arg);
 }
 
-void init_thread(struct task_struct* pthread, char* name, int prio) {
+void init_thread(struct task_struct *pthread, char *name, int prio)
+{
     memset(pthread, 0, sizeof(*pthread));
     strcpy(pthread->name, name);
 
@@ -39,24 +41,24 @@ void init_thread(struct task_struct* pthread, char* name, int prio) {
     else
         pthread->status = TASK_READY;
 
-    pthread->self_kstack = (u32*)((u32)pthread + PG_SIZE);
+    pthread->self_kstack = (u32 *)((u32)pthread + PG_SIZE);
     pthread->priority = prio;
     pthread->ticks = prio;
-    pthread->elapsed_ticks = 0;
     pthread->pgdir = NULL;
-    pthread->stack_magic = 0x19870916;  // 自定义的魔数
+    pthread->stack_magic = 0x19870916; // 自定义的魔数
 }
 
-void thread_create(struct task_struct* pthread,
+void thread_create(struct task_struct *pthread,
                    thread_func function,
-                   void* func_arg) {
+                   void *func_arg)
+{
     /* 先预留中断使用栈的空间,可见thread.h中定义的结构 */
     pthread->self_kstack -= sizeof(struct intr_stack);
 
     /* 再留出线程栈空间,可见thread.h中定义 */
     pthread->self_kstack -= sizeof(struct thread_stack);
-    struct thread_stack* kthread_stack =
-        (struct thread_stack*)pthread->self_kstack;
+    struct thread_stack *kthread_stack =
+        (struct thread_stack *)pthread->self_kstack;
     kthread_stack->ebp = kthread_stack->ebx = kthread_stack->esi =
         kthread_stack->edi = 0;
 
@@ -66,11 +68,12 @@ void thread_create(struct task_struct* pthread,
     kthread_stack->func_arg = func_arg;
 }
 
-struct task_struct* thread_start(char* name,
+struct task_struct *thread_start(char *name,
                                  int prio,
                                  thread_func function,
-                                 void* func_arg) {
-    struct task_struct* thread = get_kernel_pages(1);
+                                 void *func_arg)
+{
+    struct task_struct *thread = get_kernel_pages(1);
 
     init_thread(thread, name, prio);
     thread_create(thread, function, func_arg);
@@ -80,36 +83,39 @@ struct task_struct* thread_start(char* name,
     ASSERT(!elem_find(&thread_all_list, &thread->all_list_tag));
     list_append(&thread_all_list, &thread->all_list_tag);
     return thread;
-    // asm volatile(
-    //     "movl %0, %%esp; pop %%ebp; pop %%ebx; pop %%edi; pop %%esi; ret"
-    //     :
-    //     : "g"(thread->self_kstack)
-    //     : "memory");
-    // return thread;
 }
 
 // 进程调度
-void schedule() {
+void schedule()
+{
+    intr_disable();
     ASSERT(intr_get_status() == INTR_OFF);
-    struct task_struct* cur = running_thread();
-    if (cur->status == TASK_RUNNING) {
+
+    // 当前线程要被换下，恢复其滴答数
+    struct task_struct *cur = running_thread();
+    if (cur->status == TASK_RUNNING)
+    {
         ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
         list_append(&thread_ready_list, &cur->general_tag);
         cur->ticks = cur->priority;
         cur->status = TASK_READY;
-    } else {
+    }
+    else
+    {
     }
 
     ASSERT(!list_empty(&thread_ready_list));
-    thread_tag = NULL;
     thread_tag = list_pop(&thread_ready_list);
-    struct task_struct* next =
+    struct task_struct *next =
         elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
     switch_to(cur, next);
+
+    intr_enable();
 }
 
-static void make_main_thread() {
+static void make_main_thread()
+{
     main_thread = running_thread();
     init_thread(main_thread, "main", 31);
 
@@ -117,7 +123,8 @@ static void make_main_thread() {
     list_append(&thread_all_list, &main_thread->all_list_tag);
 }
 
-void thread_init() {
+void thread_init()
+{
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
     make_main_thread();

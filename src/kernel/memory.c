@@ -192,7 +192,7 @@ void* get_kernel_pages(u32 count) {
     return vaddr;
 }
 
-void mem_init() {
+void memory_init() {
     printf("mem_init start\n");
     u32 mem_bytes_total = (*(u32*)(0xd00));
     mem_pool_init(mem_bytes_total);

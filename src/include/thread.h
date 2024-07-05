@@ -59,7 +59,6 @@ struct task_struct {
     char name[16];
     u8 priority;
     u8 ticks;
-    u32 elapsed_ticks;
     struct list_elem general_tag;
     struct list_elem all_list_tag;
     u32* pgdir;
