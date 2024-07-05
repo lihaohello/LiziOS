@@ -17,8 +17,8 @@ int main(void) {
     // 内存管理系统初始化
     mem_init();
 
-    intr_disable();
-    thread_start("k_thread_a", 31, k_thread_a, "argA ");
+    // intr_disable();
+    // thread_start("k_thread_a", 31, k_thread_a, "argA ");
 
     while (1) {
     };

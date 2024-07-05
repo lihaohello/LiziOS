@@ -3,6 +3,7 @@
 #include "../include/io.h"
 #include "../include/stdio.h"
 #include "../include/types.h"
+#include "../include/thread.h"
 
 // -----------------------------------------------------------------------
 // 常量定义
@@ -34,6 +35,10 @@ extern interrupt_handler real_interrupt_entry_table[interrupt_num];
 
 // 定义C语言中断处理函数，供汇编代码的调用
 interrupt_handler c_interrupt_entry_table[interrupt_num];
+// 定义各中断的名字
+char* interrupt_names[interrupt_num];
+// 中断开启以来的滴答数
+u32 ticks;
 // -----------------------------------------------------------------------
 
 // -----------------------------------------------------------------------
@@ -78,6 +83,28 @@ static void idt_init() {
             c_interrupt_entry_table[i] = clock_interrupt_handler;
     }
 
+    // 初始化各中断的名称
+    interrupt_names[0] = "#DE Divide Error";
+    interrupt_names[1] = "#DB Debug Exception";
+    interrupt_names[2] = "NMI Interrupt";
+    interrupt_names[3] = "#BP Breakpoint Exception";
+    interrupt_names[4] = "#OF Overflow Exception";
+    interrupt_names[5] = "#BR BOUND Range Exceeded Exception";
+    interrupt_names[6] = "#UD Invalid Opcode Exception";
+    interrupt_names[7] = "#NM Device Not Available Exception";
+    interrupt_names[8] = "#DF Double Fault Exception";
+    interrupt_names[9] = "Coprocessor Segment Overrun";
+    interrupt_names[10] = "#TS Invalid TSS Exception";
+    interrupt_names[11] = "#NP Segment Not Present";
+    interrupt_names[12] = "#SS Stack Fault Exception";
+    interrupt_names[13] = "#GP General Protection Exception";
+    interrupt_names[14] = "#PF Page-Fault Exception";
+    interrupt_names[16] = "#MF x87 FPU Floating-Point Error";
+    interrupt_names[17] = "#AC Alignment Check Exception";
+    interrupt_names[18] = "#MC Machine-Check Exception";
+    interrupt_names[19] = "#XF SIMD Floating-Point Exception";
+    interrupt_names[32] = "This is clock interruption!";
+
     for (int i = 0; i < interrupt_num; i++)
         make_interrupt_descriptor(&idt[i], interrupt_desc_attr,
                                   real_interrupt_entry_table[i]);
@@ -107,15 +134,40 @@ static void make_interrupt_descriptor(struct interrupt_descriptor* p_descriptor,
 // 中断具体处理逻辑
 /// @brief 默认中断处理函数
 static void default_interrupt_handler(u32 i) {
-    // 当前除了时钟中断外，没有开启其它的中断，所以不会进到这里
-    ASSERT(0 > 1);
+    if (i == 0x27 || i == 0x2f)
+        return;
 
-    printf("the interrup id is %d\n", i);
+    set_cursor(0);
+    int cursor_pos = 0;
+    while (cursor_pos < 320) {
+        printf(" ");
+        cursor_pos++;
+    }
+    set_cursor(0);
+    printf("----- Exception message begin -----\n");
+    printf("%s\n", interrupt_names[i]);
+    if (i == 14) {
+        // 缺页中断
+        u32 page_fault_vaddr = 0;
+        asm volatile("movl %%cr2,%0;" : "=r"(page_fault_vaddr));
+        printf("\npage fault addr if: %x\n");
+    }
+    printf("----- Exception message end -----\n");
+    while (1) {
+    };
 }
 
 /// @brief 时钟中断处理函数
 static void clock_interrupt_handler() {
-    printf("clock interruption occured!\n");
+    struct task_struct* cur_thread=running_thread();
+    ASSERT(cur_thread->stack_magic == 0x19870916);
+    cur_thread->elapsed_ticks++;
+    ticks++;
+
+    if(cur_thread->ticks==0)
+        schedule();
+    else
+        cur_thread->ticks--;
 }
 // -----------------------------------------------------------------------
 
