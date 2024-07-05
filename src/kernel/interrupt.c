@@ -10,7 +10,6 @@
 #define code_selector 0b1000
 #define interrupt_desc_attr 0b10001110
 #define interrupt_num 0x21
-#define BOCHS_BREAK asm volatile("xchg %bx,%bx;");
 
 /// @brief 中断描述符结构体
 struct interrupt_descriptor
@@ -82,9 +81,10 @@ static void idt_init()
     // 先为c_interrupt_entry_table数组赋值
     for (int i = 0; i < interrupt_num; i++)
     {
-        c_interrupt_entry_table[i] = default_interrupt_handler;
-        if (i == 0x20)
-            c_interrupt_entry_table[i] = clock_interrupt_handler;
+        // if (i == 0x20)
+        //     c_interrupt_entry_table[i] = clock_interrupt_handler;
+        // else
+            c_interrupt_entry_table[i] = default_interrupt_handler;
     }
 
     // 初始化各中断的名称
@@ -168,10 +168,10 @@ static void default_interrupt_handler(u32 i)
 /// @brief 时钟中断处理函数
 static void clock_interrupt_handler()
 {
+    printf("C ");
     struct task_struct *cur_thread = running_thread();
     ASSERT(cur_thread->stack_magic == 0x19870916);
     u32 tt = --cur_thread->ticks;
-    // asm volatile("pushl %%eax; movl %0,%%eax; xchg %%bx,%%bx; popl %%eax" ::"m"(tt));
     if (cur_thread->ticks == 0)
         schedule();
     else
@@ -184,7 +184,7 @@ static void clock_interrupt_handler()
 enum intr_status intr_get_status()
 {
     u32 eflags = 0;
-    asm volatile("pushfl;popl %0" : "=g"(eflags));
+    asm volatile("pushfl; popl %0" : "=g"(eflags));
     return (0x00000200 & eflags) ? INTR_ON : INTR_OFF;
 }
 
@@ -213,7 +213,7 @@ enum intr_status intr_disable()
     else
     {
         old_status = INTR_ON;
-        asm volatile("cli" ::: "memory");
+        asm volatile("cli" : : : "memory");
     }
     return old_status;
 }

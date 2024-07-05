@@ -1,12 +1,10 @@
 #include "../include/assert.h"
-#include "../include/interrupt.h"
 #include "../include/memory.h"
 #include "../include/stdio.h"
 #include "../include/timer.h"
 #include "../include/thread.h"
 
 void k_thread_a(void *);
-#define BOCHS_BREAK asm volatile("xchg %bx,%bx");
 
 int main(void)
 {
@@ -15,18 +13,18 @@ int main(void)
     // 中断初始化
     interrupt_init();
     // 计时器初始化
-    timer_init();
+    // timer_init();
     // 内存管理系统初始化
     memory_init();
     // 主进程初始化
     thread_init();
 
-    intr_enable();
-    
     thread_start("k_thread_a", 31, k_thread_a, "A ");
 
-    while (1)
+    while (1){
         printf("0 ");
+        schedule();
+    }
 
     return 0;
 }
@@ -34,6 +32,8 @@ int main(void)
 void k_thread_a(void *arg)
 {
     char *para = arg;
-    while (1)
+    while (1){
         printf(para);
+        schedule();
+    }
 }

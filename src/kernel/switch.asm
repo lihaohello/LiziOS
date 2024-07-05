@@ -2,8 +2,6 @@
 section .text
 global switch_to
 switch_to:
-   xchg bx,bx
-
    push esi
    push edi
    push ebx

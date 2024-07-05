@@ -32,7 +32,6 @@ struct virtual_addr kernel_vaddr;
 /// @brief 内存池初始化：1M为内核代码，1M为页表，其余30M内核、用户平分各占15M
 /// @param all_mem：总内存大小32M，在loader代码中读取内存大小后写入0xd00内存处
 static void mem_pool_init(u32 all_mem) {
-    printf("   mem_pool_init start\n");
     // 256各页表：1页目录+1+254
     u32 page_table_size = PG_SIZE * 256;
 
@@ -59,10 +58,12 @@ static void mem_pool_init(u32 all_mem) {
     kernel_pool.pool_bitmap.bits = (void*)MEM_BITMAP_BASE;
     user_pool.pool_bitmap.bits = (void*)(MEM_BITMAP_BASE + kbm_length);
 
+    printf("-----------------------------\n");
     printf("kernel_pool: bitmap_start: %x, phy_addr_start=%x\n",
            (u32)kernel_pool.pool_bitmap.bits, kernel_pool.phy_addr_start);
     printf("user_pool: bitmap_start: %x, phy_addr_start=%x\n",
            (u32)user_pool.pool_bitmap.bits, user_pool.phy_addr_start);
+    printf("-----------------------------\n");
 
     // 清空两个位图
     bitmap_init(&kernel_pool.pool_bitmap);
@@ -74,7 +75,6 @@ static void mem_pool_init(u32 all_mem) {
         (void*)(MEM_BITMAP_BASE + kbm_length + ubm_length);
     kernel_vaddr.addr_start = K_HEAP_START;
     bitmap_init(&kernel_vaddr.addr_bitmap);
-    printf("mem_pool_init done\n");
 }
 
 /// @brief 在内存池中申请虚拟地址
@@ -122,7 +122,6 @@ static u32* pde_ptr(u32 vaddr) {
 /// @return
 static void* palloc(struct pool* m_pool) {
     int bit_idx = bitmap_request_bits(&m_pool->pool_bitmap, 1);
-    printf("in palloc: bit_idx=%d\n", bit_idx);
     if (bit_idx == -1)
         return NULL;
     bitmap_set_bit(&m_pool->pool_bitmap, bit_idx, 1);
@@ -193,8 +192,8 @@ void* get_kernel_pages(u32 count) {
 }
 
 void memory_init() {
-    printf("mem_init start\n");
     u32 mem_bytes_total = (*(u32*)(0xd00));
     mem_pool_init(mem_bytes_total);
-    printf("mem_init done\n");
+
+    printf("memory_init done\n");
 }

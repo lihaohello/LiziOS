@@ -1,6 +1,5 @@
 #include "../include/thread.h"
 #include "../include/assert.h"
-#include "../include/interrupt.h"
 #include "../include/memory.h"
 #include "../include/stdio.h"
 #include "../include/string.h"
@@ -88,9 +87,6 @@ struct task_struct *thread_start(char *name,
 // 进程调度
 void schedule()
 {
-    intr_disable();
-    ASSERT(intr_get_status() == INTR_OFF);
-
     // 当前线程要被换下，恢复其滴答数
     struct task_struct *cur = running_thread();
     if (cur->status == TASK_RUNNING)
@@ -105,13 +101,12 @@ void schedule()
     }
 
     ASSERT(!list_empty(&thread_ready_list));
+    thread_tag = NULL;
     thread_tag = list_pop(&thread_ready_list);
     struct task_struct *next =
         elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
     switch_to(cur, next);
-
-    intr_enable();
 }
 
 static void make_main_thread()
