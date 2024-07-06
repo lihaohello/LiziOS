@@ -1,6 +1,6 @@
-#include "../include/assert.h"
-#include "../include/stdio.h"
-#include "../include/interrupt.h"
+#include "assert.h"
+#include "stdio.h"
+#include "interrupt.h"
 
 void panic_spin(char *filename,
                 int line,

@@ -1,8 +1,9 @@
-#include "../include/thread.h"
-#include "../include/assert.h"
-#include "../include/memory.h"
-#include "../include/stdio.h"
-#include "../include/string.h"
+#include "thread.h"
+#include "assert.h"
+#include "memory.h"
+#include "stdio.h"
+#include "string.h"
+#include "interrupt.h"
 
 #define PG_SIZE 4096
 #define BOCHS_BREAK asm volatile("xchg %bx,%bx");
@@ -27,6 +28,7 @@ struct task_struct *running_thread()
 /// @param func_arg
 static void kernel_thread(thread_func *function, void *func_arg)
 {
+    intr_enable();
     function(func_arg);
 }
 
@@ -112,7 +114,7 @@ void schedule()
 static void make_main_thread()
 {
     main_thread = running_thread();
-    init_thread(main_thread, "main", 31);
+    init_thread(main_thread, "main", 4);
 
     ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
     list_append(&thread_all_list, &main_thread->all_list_tag);

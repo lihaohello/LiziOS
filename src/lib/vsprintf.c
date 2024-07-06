@@ -1,7 +1,7 @@
-#include "../include/assert.h"
-#include "../include/stdarg.h"
-#include "../include/string.h"
-#include "../include/types.h"
+#include "assert.h"
+#include "stdarg.h"
+#include "string.h"
+#include "types.h"
 
 #define ZEROPAD 0x01  // 填充零
 #define SIGN 0x02     // unsigned/signed long

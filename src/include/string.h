@@ -1,7 +1,7 @@
 #ifndef __STRING_H
 #define __STRING_H
 
-#include "../include/types.h"
+#include "types.h"
 
 char* strcpy(char* dest, const char* src);
 char* strncpy(char* dest, const char* src, size_t count);

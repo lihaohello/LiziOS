@@ -1,7 +1,6 @@
 #ifndef __BITMAP_H
 #define __BITMAP_H
 
-#include <stdint.h>
 #include "types.h"
 
 /// @brief 位图数据结构

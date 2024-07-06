@@ -1,8 +1,7 @@
-#include "../include/memory.h"
-#include "../include/assert.h"
-#include "../include/stdio.h"
-#include "../include/string.h"
-#include "../include/types.h"
+#include "memory.h"
+#include "assert.h"
+#include "stdio.h"
+#include "string.h"
 
 #define BOCHS_BREAK asm volatile("xchg %bx,%bx");
 
@@ -14,7 +13,8 @@
 #define PTE_IDX(addr) ((addr & 0x003ff000) >> 12)
 
 /// @brief 物理内存池
-struct pool {
+struct pool
+{
     /// @brief 管理内存池的位图（位图起始地址、位图字节大小）
     struct bitmap pool_bitmap;
     /// @brief 物理内存的起始地址
@@ -31,7 +31,8 @@ struct virtual_addr kernel_vaddr;
 
 /// @brief 内存池初始化：1M为内核代码，1M为页表，其余30M内核、用户平分各占15M
 /// @param all_mem：总内存大小32M，在loader代码中读取内存大小后写入0xd00内存处
-static void mem_pool_init(u32 all_mem) {
+static void mem_pool_init(u32 all_mem)
+{
     // 256各页表：1页目录+1+254
     u32 page_table_size = PG_SIZE * 256;
 
@@ -55,8 +56,8 @@ static void mem_pool_init(u32 all_mem) {
     user_pool.pool_size = user_free_pages * PG_SIZE;
     kernel_pool.pool_bitmap.length = kbm_length;
     user_pool.pool_bitmap.length = ubm_length;
-    kernel_pool.pool_bitmap.bits = (void*)MEM_BITMAP_BASE;
-    user_pool.pool_bitmap.bits = (void*)(MEM_BITMAP_BASE + kbm_length);
+    kernel_pool.pool_bitmap.bits = (void *)MEM_BITMAP_BASE;
+    user_pool.pool_bitmap.bits = (void *)(MEM_BITMAP_BASE + kbm_length);
 
     printf("-----------------------------\n");
     printf("kernel_pool: bitmap_start: %x, phy_addr_start=%x\n",
@@ -72,7 +73,7 @@ static void mem_pool_init(u32 all_mem) {
     // 内核空间的虚拟地址管理
     kernel_vaddr.addr_bitmap.length = kbm_length;
     kernel_vaddr.addr_bitmap.bits =
-        (void*)(MEM_BITMAP_BASE + kbm_length + ubm_length);
+        (void *)(MEM_BITMAP_BASE + kbm_length + ubm_length);
     kernel_vaddr.addr_start = K_HEAP_START;
     bitmap_init(&kernel_vaddr.addr_bitmap);
 }
@@ -81,9 +82,11 @@ static void mem_pool_init(u32 all_mem) {
 /// @param
 /// @param count
 /// @return 虚拟地址
-static void* vaddr_get(enum pool_type type, u32 count) {
+static void *vaddr_get(enum pool_type type, u32 count)
+{
     u32 vaddr_start = 0, bit_index_start = -1;
-    if (type == KERNEL_POOL) {
+    if (type == KERNEL_POOL)
+    {
         // 在内核虚拟位图中分配虚拟内存
         bit_index_start = bitmap_request_bits(&kernel_vaddr.addr_bitmap, count);
         if (bit_index_start == -1)
@@ -92,65 +95,77 @@ static void* vaddr_get(enum pool_type type, u32 count) {
         for (u32 i = bit_index_start; i < bit_index_start + count; i++)
             bitmap_set_bit(&kernel_vaddr.addr_bitmap, i, 1);
         vaddr_start = kernel_vaddr.addr_start + bit_index_start * PG_SIZE;
-    } else {
+    }
+    else
+    {
         // 在用户空间分配虚拟内存...
     }
-    return (void*)vaddr_start;
+    return (void *)vaddr_start;
 }
 
 /// @brief 获取虚拟地址的pte指针（虚拟地址）
 /// @param vaddr 虚拟地址
 /// @return
-static u32* pte_ptr(u32 vaddr) {
+static u32 *pte_ptr(u32 vaddr)
+{
     // 0xffc00000是第1个页表的起始地址
-    u32* pte =
-        (u32*)(0xffc00000 + ((vaddr & 0xffc00000) >> 10) + PTE_IDX(vaddr) * 4);
+    u32 *pte =
+        (u32 *)(0xffc00000 + ((vaddr & 0xffc00000) >> 10) + PTE_IDX(vaddr) * 4);
     return pte;
 }
 
 /// @brief 获取虚拟地址的pde指针（虚拟地址）
 /// @param vaddr 虚拟地址
 /// @return
-static u32* pde_ptr(u32 vaddr) {
+static u32 *pde_ptr(u32 vaddr)
+{
     // 0xfffff0000是页目录的虚拟地址
-    u32* pde = (u32*)(0xfffff000 + PDE_IDX(vaddr) * 4);
+    u32 *pde = (u32 *)(0xfffff000 + PDE_IDX(vaddr) * 4);
     return pde;
 }
 
 /// @brief 从物理内存池中分配一个物理页
 /// @param m_pool
 /// @return
-static void* palloc(struct pool* m_pool) {
+static void *palloc(struct pool *m_pool)
+{
     int bit_idx = bitmap_request_bits(&m_pool->pool_bitmap, 1);
     if (bit_idx == -1)
         return NULL;
     bitmap_set_bit(&m_pool->pool_bitmap, bit_idx, 1);
     u32 page_pyaddr = (m_pool->phy_addr_start + PG_SIZE * bit_idx);
-    return (void*)page_pyaddr;
+    return (void *)page_pyaddr;
 }
 
 /// @brief 在页表中添加虚拟地址和物理地址的映射
 /// @param _vaddr 虚拟地址
 /// @param _page_phyaddr 物理页地址
-static void page_table_add(void* _vaddr, void* _page_phyaddr) {
+static void page_table_add(void *_vaddr, void *_page_phyaddr)
+{
     u32 vaddr = (u32)_vaddr;
     u32 page_phyaddr = (u32)_page_phyaddr;
 
-    u32* pde = pde_ptr(vaddr);
-    u32* pte = pte_ptr(vaddr);
+    u32 *pde = pde_ptr(vaddr);
+    u32 *pte = pte_ptr(vaddr);
 
-    if (*pde & 0x00000001) {
+    if (*pde & 0x00000001)
+    {
         ASSERT(!(*pte & 0x00000001));
-        if (!(*pte & 0x00000001)) {
+        if (!(*pte & 0x00000001))
+        {
             *pte = (page_phyaddr | 0b0111);
-        } else {
+        }
+        else
+        {
             PANIC("pte repeated!");
             *pte = (page_phyaddr | 0b0111);
         }
-    } else {
+    }
+    else
+    {
         u32 pde_phyaddr = (u32)palloc(&kernel_pool);
         *pde = (pde_phyaddr | 0b0111);
-        memset((void*)((u32)pte & 0xfffff000), 0, PG_SIZE);
+        memset((void *)((u32)pte & 0xfffff000), 0, PG_SIZE);
         ASSERT(!(*pte & 0x00000001));
         *pte = (page_phyaddr | 0b0111);
     }
@@ -160,21 +175,23 @@ static void page_table_add(void* _vaddr, void* _page_phyaddr) {
 /// @param
 /// @param count
 /// @return
-void* malloc_page(enum pool_type type, u32 count) {
+void *malloc_page(enum pool_type type, u32 count)
+{
     ASSERT(count > 0 && count < 3840);
 
-    void* vaddr_start = vaddr_get(type, count);
+    void *vaddr_start = vaddr_get(type, count);
     if (vaddr_start == NULL)
         return NULL;
     u32 vaddr = (u32)vaddr_start;
 
-    struct pool* mem_pool = type & KERNEL_POOL ? &kernel_pool : &user_pool;
+    struct pool *mem_pool = type & KERNEL_POOL ? &kernel_pool : &user_pool;
     u32 cnt = count;
-    while (cnt-- > 0) {
-        void* page_phyaddr = palloc(mem_pool);
+    while (cnt-- > 0)
+    {
+        void *page_phyaddr = palloc(mem_pool);
         if (page_phyaddr == NULL)
             return NULL;
-        page_table_add((void*)vaddr, page_phyaddr);
+        page_table_add((void *)vaddr, page_phyaddr);
 
         vaddr += PG_SIZE;
     }
@@ -184,15 +201,17 @@ void* malloc_page(enum pool_type type, u32 count) {
 /// @brief 分配内核物理地址，并返回虚拟地址
 /// @param count
 /// @return
-void* get_kernel_pages(u32 count) {
-    void* vaddr = malloc_page(KERNEL_POOL, count);
+void *get_kernel_pages(u32 count)
+{
+    void *vaddr = malloc_page(KERNEL_POOL, count);
     if (vaddr != NULL)
         memset(vaddr, 0, count * PG_SIZE);
     return vaddr;
 }
 
-void memory_init() {
-    u32 mem_bytes_total = (*(u32*)(0xd00));
+void memory_init()
+{
+    u32 mem_bytes_total = (*(u32 *)(0xd00));
     mem_pool_init(mem_bytes_total);
 
     printf("memory_init done\n");

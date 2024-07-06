@@ -1,6 +1,6 @@
-#include "../include/bitmap.h"
-#include "../include/assert.h"
-#include "../include/string.h"
+#include "bitmap.h"
+#include "assert.h"
+#include "string.h"
 
 /// @brief 初始化位图
 /// @param bitmap
@@ -48,7 +48,7 @@ int bitmap_request_bits(struct bitmap* bitmap, u32 n) {
     }
 
     int idx_bit = 0;
-    while ((uint8_t)(1 << idx_bit) & bitmap->bits[idx_byte]) {
+    while ((u8)(1 << idx_bit) & bitmap->bits[idx_byte]) {
         idx_bit++;
     }
 

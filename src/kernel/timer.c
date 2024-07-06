@@ -1,7 +1,7 @@
-#include "../include/timer.h"
-#include "../include/io.h"
-#include "../include/stdio.h"
-#include "../include/types.h"
+#include "timer.h"
+#include "io.h"
+#include "stdio.h"
+#include "types.h"
 
 static void pic_init()
 {

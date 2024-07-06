@@ -18,6 +18,7 @@
     "bitmap.h": "c",
     "memory.h": "c",
     "timer.h": "c",
-    "cstdint": "c"
+    "cstdint": "c",
+    "io.h": "c"
   }
 }
