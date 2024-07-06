@@ -19,10 +19,13 @@ int main(void)
     // 主进程初始化
     thread_init();
 
-    thread_start("k_thread_a", 31, k_thread_a, "A ");
-    thread_start("k_thread_b", 31, k_thread_a, "B ");
+    // thread_start("k_thread_a", 31, k_thread_a, "A ");
+    // thread_start("k_thread_b", 31, k_thread_a, "B ");
+    // thread_start("k_thread_c", 31, k_thread_a, "C ");
+    // thread_start("k_thread_d", 31, k_thread_a, "D ");
 
-    while (1){
+    while (1)
+    {
         printf("0 ");
         schedule();
     }
@@ -33,7 +36,8 @@ int main(void)
 void k_thread_a(void *arg)
 {
     char *para = arg;
-    while (1){
+    while (1)
+    {
         printf(para);
         schedule();
     }
