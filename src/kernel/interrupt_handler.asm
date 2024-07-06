@@ -1,42 +1,52 @@
 [bits 32]
-
 section .data
 extern c_interrupt_entry_table
+
+; 定义中断描述符表的起点
 global real_interrupt_entry_table
 real_interrupt_entry_table:
 
+; 汇编宏定义
 %macro VECTOR 2
 section .text
 intr%1entry:
    %ifn %2
       push 0
-   %endif	
+   %endif
+
+   ; 进入中断执行逻辑之前，先保存执行现场
    push ds
    push es
    push fs
    push gs
    pushad
 
-   ; 先后顺序很重要(必须在实际逻辑之前)
-   mov al,0x20  
-   out 0xa0,al   
-   out 0x20,al    
+   ; 结束中断（必须在实际逻辑之前发送EOI，不然中断会出现问题）
+   mov al,0x20
+   out 0xa0,al
+   out 0x20,al
 
-   push %1		
-   call [c_interrupt_entry_table + %1*4]  
-   add esp, 4	
+   ; 执行具体的中断处理函数
+   push %1
+   call [c_interrupt_entry_table+4*%1]
+   add esp,4
 
+   ; 还原执行现场
    popad
    pop gs
    pop fs
    pop es
    pop ds
-   add esp, 4	
+
+   ; 将错误码出栈
+   add esp,4
+   ; 返回中断函数执行前的地址
    iret
 
 section .data
-   dd    intr%1entry	 
+   dd intr%1entry
 %endmacro
+
 
 ; 定义0~32号中断处理函数（不是可屏蔽中断）
 VECTOR 0x00,0
