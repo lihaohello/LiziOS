@@ -5,67 +5,100 @@
 #include "types.h"
 #include "assert.h"
 
-#define PIC_M_CTRL 0x20 // 这里用的可编程中断控制器是8259A,主片的控制端口是0x20
-#define PIC_M_DATA 0x21 // 主片的数据端口是0x21
-#define PIC_S_CTRL 0xa0 // 从片的控制端口是0xa0
-#define PIC_S_DATA 0xa1 // 从片的数据端口是0xa1
+#define interrupt_num 0x21 
 
-#define IDT_DESC_CNT 0x21 // 目前总共支持的中断数
-
-#define EFLAGS_IF 0x00000200 // eflags寄存器中的if位为1
-#define GET_EFLAGS(EFLAG_VAR) asm volatile("pushfl; popl %0" : "=g"(EFLAG_VAR))
-
-#define IDT_DESC_P 1
-#define IDT_DESC_DPL0 0
-#define IDT_DESC_DPL3 3
-#define IDT_DESC_32_TYPE 0xE // 32位的门
-#define IDT_DESC_16_TYPE 0x6 // 16位的门，不用，定义它只为和32位门区分
-#define IDT_DESC_ATTR_DPL0 ((IDT_DESC_P << 7) + (IDT_DESC_DPL0 << 5) + IDT_DESC_32_TYPE)
-#define IDT_DESC_ATTR_DPL3 ((IDT_DESC_P << 7) + (IDT_DESC_DPL3 << 5) + IDT_DESC_32_TYPE)
-
-/*中断门描述符结构体*/
-struct gate_desc
+/// @brief 中断描述符
+struct interrupt_descriptor
 {
     u16 func_offset_low_word;
     u16 selector;
-    u8 dcount; // 此项为双字计数字段，是门描述符中的第4字节。此项固定值，不用考虑
+    u8 dcount;
     u8 attribute;
     u16 func_offset_high_word;
 };
 
-// 静态函数声明,非必须
-static void make_idt_desc(struct gate_desc *p_gdesc, u8 attr, intr_handler function);
-static struct gate_desc idt[IDT_DESC_CNT]; // idt是中断描述符表,本质上就是个中断门描述符数组
+// 内部链接函数声明
+static void pic_init(void);
+static void idt_init(void);
+static void make_idt_desc(struct interrupt_descriptor *p_gdesc, u8 attr, intr_handler function);
+static void default_interrupt_handler(u8 i);
+static void clock_interrupt_handler(void);
 
-char *intr_name[IDT_DESC_CNT];                      // 用于保存异常的名字
-intr_handler idt_table[IDT_DESC_CNT];               // 定义中断处理程序数组.在kernel.S中定义的intrXXentry只是中断处理程序的入口,最终调用的是ide_table中的处理程序
-extern intr_handler intr_entry_table[IDT_DESC_CNT]; // 声明引用定义在kernel.S中的中断处理函数入口数组
+// 变量声明
+char *interrupt_names[interrupt_num];
+intr_handler c_interrupt_entry_table[interrupt_num];
+extern intr_handler real_interrupt_entry_table[interrupt_num];
+static struct interrupt_descriptor idt[interrupt_num];
 
-/* 初始化可编程中断控制器8259A */
-static void pic_init(void)
+void interrupt_init()
 {
+    pic_init();
+    idt_init();
 
-    /* 初始化主片 */
-    outb(PIC_M_CTRL, 0x11); // ICW1: 边沿触发,级联8259, 需要ICW4.
-    outb(PIC_M_DATA, 0x20); // ICW2: 起始中断向量号为0x20,也就是IR[0-7] 为 0x20 ~ 0x27.
-    outb(PIC_M_DATA, 0x04); // ICW3: IR2接从片.
-    outb(PIC_M_DATA, 0x01); // ICW4: 8086模式, 正常EOI
-
-    /* 初始化从片 */
-    outb(PIC_S_CTRL, 0x11); // ICW1: 边沿触发,级联8259, 需要ICW4.
-    outb(PIC_S_DATA, 0x28); // ICW2: 起始中断向量号为0x28,也就是IR[8-15] 为 0x28 ~ 0x2F.
-    outb(PIC_S_DATA, 0x02); // ICW3: 设置从片连接到主片的IR2引脚
-    outb(PIC_S_DATA, 0x01); // ICW4: 8086模式, 正常EOI
-
-    /* 打开主片上IR0,也就是目前只接受时钟产生的中断 */
-    outb(PIC_M_DATA, 0xfe);
-    outb(PIC_S_DATA, 0xff);
-
-    printf("   pic_init done\n");
+    u64 idt_operand = ((sizeof(idt) - 1) | ((u64)(u32)idt << 16));
+    asm volatile("lidt %0" : : "m"(idt_operand));
+    printf("interrupt_init is done.\n");
 }
 
-/* 创建中断门描述符 */
-static void make_idt_desc(struct gate_desc *p_gdesc, u8 attr, intr_handler function)
+static void pic_init(void)
+{
+    // 写入ICW1
+    outb(0x20, 0b00010001);
+    outb(0xa0, 0b00010001);
+
+    // 写入ICW2
+    outb(0x21, 0x20);
+    outb(0xa1, 0x28);
+
+    // 写入ICW3
+    outb(0x21, 0b00000100);
+    outb(0xa1, 0b00000010);
+
+    // 写入ICW4
+    outb(0x21, 0b00000001);
+    outb(0xa1, 0b00000001);
+
+    // 写入OCW1,设置中断屏蔽，这里只开放时钟中断
+    outb(0x21, 0xfe);
+    outb(0xa1, 0xff);
+}
+
+static void idt_init(void)
+{
+    for (int i = 0; i < interrupt_num; i++)
+    {
+        if (i == 0x20)
+            c_interrupt_entry_table[i] = clock_interrupt_handler;
+        else
+            c_interrupt_entry_table[i] = default_interrupt_handler;
+        interrupt_names[i] = "unknown";
+    }
+    interrupt_names[0] = "#DE Divide Error";
+    interrupt_names[1] = "#DB Debug Exception";
+    interrupt_names[2] = "NMI Interrupt";
+    interrupt_names[3] = "#BP Breakpoint Exception";
+    interrupt_names[4] = "#OF Overflow Exception";
+    interrupt_names[5] = "#BR BOUND Range Exceeded Exception";
+    interrupt_names[6] = "#UD Invalid Opcode Exception";
+    interrupt_names[7] = "#NM Device Not Available Exception";
+    interrupt_names[8] = "#DF Double Fault Exception";
+    interrupt_names[9] = "Coprocessor Segment Overrun";
+    interrupt_names[10] = "#TS Invalid TSS Exception";
+    interrupt_names[11] = "#NP Segment Not Present";
+    interrupt_names[12] = "#SS Stack Fault Exception";
+    interrupt_names[13] = "#GP General Protection Exception";
+    interrupt_names[14] = "#PF Page-Fault Exception";
+    interrupt_names[16] = "#MF x87 FPU Floating-Point Error";
+    interrupt_names[17] = "#AC Alignment Check Exception";
+    interrupt_names[18] = "#MC Machine-Check Exception";
+    interrupt_names[19] = "#XF SIMD Floating-Point Exception";
+
+    // 构造中断描述符表
+    for (int i = 0; i < interrupt_num; i++)
+        make_idt_desc(&idt[i], 0b10001110, real_interrupt_entry_table[i]);
+}
+
+static void make_idt_desc(struct interrupt_descriptor *p_gdesc, u8 attr, intr_handler function)
 {
     p_gdesc->func_offset_low_word = (u32)function & 0x0000FFFF;
     p_gdesc->selector = (1 << 3);
@@ -74,25 +107,13 @@ static void make_idt_desc(struct gate_desc *p_gdesc, u8 attr, intr_handler funct
     p_gdesc->func_offset_high_word = ((u32)function & 0xFFFF0000) >> 16;
 }
 
-/*初始化中断描述符表*/
-static void idt_desc_init(void)
+// -----------------------------------------------------------------------
+// 中断处理函数
+static void default_interrupt_handler(u8 i)
 {
-    int i;
-    for (i = 0; i < IDT_DESC_CNT; i++)
-    {
-        make_idt_desc(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[i]);
-    }
-    printf("   idt_desc_init done\n");
-}
+    if (i == 0x27 || i == 0x2f)
+        return;
 
-/* 通用的中断处理函数,一般用在异常出现时的处理 */
-static void general_intr_handler(u8 vec_nr)
-{
-    if (vec_nr == 0x27 || vec_nr == 0x2f)
-    {           // 0x2f是从片8259A上的最后一个irq引脚，保留
-        return; // IRQ7和IRQ15会产生伪中断(spurious interrupt),无须处理。
-    }
-    /* 将光标置为0,从屏幕左上角清出一片打印异常信息的区域,方便阅读 */
     set_cursor(0);
     int cursor_pos = 0;
     while (cursor_pos < 320)
@@ -100,78 +121,35 @@ static void general_intr_handler(u8 vec_nr)
         printf(" ");
         cursor_pos++;
     }
-
-    set_cursor(0); // 重置光标为屏幕左上角
-    printf("!!!!!!!      excetion message begin  !!!!!!!!\n");
-    set_cursor(88); // 从第2行第8个字符开始打印
-    printf(intr_name[vec_nr]);
-    if (vec_nr == 14)
-    { // 若为Pagefault,将缺失的地址打印出来并悬停
-        int page_fault_vaddr = 0;
-        asm("movl %%cr2, %0" : "=r"(page_fault_vaddr)); // cr2是存放造成page_fault的地址
-        printf("\npage fault addr is %x\n", page_fault_vaddr);
+    set_cursor(0);
+    printf("----- Exception message begin -----\n");
+    printf("%s\n", interrupt_names[i]);
+    if (i == 14)
+    {
+        // 缺页中断
+        u32 page_fault_vaddr = 0;
+        asm volatile("movl %%cr2,%0;" : "=r"(page_fault_vaddr));
+        printf("page fault addr if: %x\n");
     }
-    printf("\n!!!!!!!      excetion message end    !!!!!!!!\n");
-    // 能进入中断处理程序就表示已经处在关中断情况下,
-    // 不会出现调度进程的情况。故下面的死循环不会再被中断。
+    printf("----- Exception message end -----\n");
     while (1)
         ;
 }
 
-/* 时钟的中断处理函数 */
-static void intr_timer_handler(void)
+static void clock_interrupt_handler(void)
 {
     struct task_struct *cur_thread = running_thread();
-
-    ASSERT(cur_thread->stack_magic == 0x19870916); // 检查栈是否溢出
-
-    // ticks++; // 从内核第一次处理时间中断后开始至今的滴哒数,内核态和用户态总共的嘀哒数
+    ASSERT(cur_thread->stack_magic == 0x19870916);
 
     if (cur_thread->ticks == 0)
-    { // 若进程时间片用完就开始调度新的进程上cpu
         schedule();
-    }
     else
-    { // 将当前进程的时间片-1
         cur_thread->ticks--;
-    }
 }
+// -----------------------------------------------------------------------
 
-/* 完成一般中断处理函数注册及异常名称注册 */
-static void exception_init(void)
-{ // 完成一般中断处理函数注册及异常名称注册
-    int i;
-    for (i = 0; i < IDT_DESC_CNT; i++)
-    {
-        if (i == 0x20)
-            idt_table[i] = intr_timer_handler;
-        else
-            idt_table[i] = general_intr_handler;
-        intr_name[i] = "unknown"; // 先统一赋值为unknown
-    }
-    intr_name[0] = "#DE Divide Error";
-    intr_name[1] = "#DB Debug Exception";
-    intr_name[2] = "NMI Interrupt";
-    intr_name[3] = "#BP Breakpoint Exception";
-    intr_name[4] = "#OF Overflow Exception";
-    intr_name[5] = "#BR BOUND Range Exceeded Exception";
-    intr_name[6] = "#UD Invalid Opcode Exception";
-    intr_name[7] = "#NM Device Not Available Exception";
-    intr_name[8] = "#DF Double Fault Exception";
-    intr_name[9] = "Coprocessor Segment Overrun";
-    intr_name[10] = "#TS Invalid TSS Exception";
-    intr_name[11] = "#NP Segment Not Present";
-    intr_name[12] = "#SS Stack Fault Exception";
-    intr_name[13] = "#GP General Protection Exception";
-    intr_name[14] = "#PF Page-Fault Exception";
-    // intr_name[15] 第15项是intel保留项，未使用
-    intr_name[16] = "#MF x87 FPU Floating-Point Error";
-    intr_name[17] = "#AC Alignment Check Exception";
-    intr_name[18] = "#MC Machine-Check Exception";
-    intr_name[19] = "#XF SIMD Floating-Point Exception";
-}
-
-/* 开中断并返回开中断前的状态*/
+// -----------------------------------------------------------------------
+// 开关中断
 enum intr_status intr_enable()
 {
     enum intr_status old_status;
@@ -183,60 +161,33 @@ enum intr_status intr_enable()
     else
     {
         old_status = INTR_OFF;
-        asm volatile("sti"); // 开中断,sti指令将IF位置1
+        asm volatile("sti");
         return old_status;
     }
 }
 
-/* 关中断,并且返回关中断前的状态 */
 enum intr_status intr_disable()
 {
     enum intr_status old_status;
     if (INTR_ON == intr_get_status())
     {
         old_status = INTR_ON;
-        asm volatile("cli" : : : "memory"); // 关中断,cli指令将IF位置0
-        return old_status;
+        asm volatile("cli" : : : "memory");
     }
     else
-    {
         old_status = INTR_OFF;
-        return old_status;
-    }
+    return old_status;
 }
 
-/* 将中断状态设置为status */
 enum intr_status intr_set_status(enum intr_status status)
 {
     return status & INTR_ON ? intr_enable() : intr_disable();
 }
 
-/* 获取当前中断状态 */
 enum intr_status intr_get_status()
 {
     u32 eflags = 0;
     asm volatile("pushfl; popl %0;" : "=g"(eflags));
     return (0x00000200 & eflags) ? INTR_ON : INTR_OFF;
 }
-
-/* 在中断处理程序数组第vector_no个元素中注册安装中断处理程序function */
-void register_handler(u8 vector_no, intr_handler function)
-{
-    /* idt_table数组中的函数是在进入中断后根据中断向量号调用的,
-     * 见kernel/kernel.S的call [idt_table + %1*4] */
-    idt_table[vector_no] = function;
-}
-
-/*完成有关中断的所有初始化工作*/
-void idt_init()
-{
-    printf("idt_init start\n");
-    idt_desc_init();  // 初始化中断描述符表
-    exception_init(); // 异常名初始化并注册通常的中断处理函数
-    pic_init();       // 初始化8259A
-
-    /* 加载idt */
-    u64 idt_operand = ((sizeof(idt) - 1) | ((u64)(u32)idt << 16));
-    asm volatile("lidt %0" : : "m"(idt_operand));
-    printf("idt_init done\n");
-}
+// -----------------------------------------------------------------------

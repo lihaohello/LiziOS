@@ -12,7 +12,7 @@ int main(void)
     printf("\n\nLiziOS is initializing the kernel...\n");
 
     // 中断初始化
-    idt_init();
+    interrupt_init();
     // 计时器初始化
     timer_init();
     // 内存管理系统初始化
