@@ -8,6 +8,7 @@
     "interrupt.h": "c",
     "sync.h": "c",
     "thread.h": "c",
-    "ioqueue.h": "c"
+    "ioqueue.h": "c",
+    "memory.h": "c"
   }
 }

@@ -2,6 +2,8 @@
 #include "assert.h"
 #include "stdio.h"
 #include "string.h"
+#include "bitmap.h"
+#include "sync.h"
 
 #define BOCHS_BREAK asm volatile("xchg %bx,%bx");
 
@@ -15,6 +17,8 @@
 /// @brief 物理内存池
 struct pool
 {
+    /// @brief 用户进程申请资源时需要加锁控制
+    struct lock lock;
     /// @brief 管理内存池的位图（位图起始地址、位图字节大小）
     struct bitmap pool_bitmap;
     /// @brief 物理内存的起始地址
@@ -26,7 +30,7 @@ struct pool
 /// @brief 声明内核物理内存池、用户物理内存池
 struct pool kernel_pool, user_pool;
 
-/// @brief 虚拟内存管理
+/// @brief 内核虚拟内存管理
 struct virtual_addr kernel_vaddr;
 
 /// @brief 内存池初始化：1M为内核代码，1M为页表，其余30M内核、用户平分各占15M
@@ -38,6 +42,7 @@ static void mem_pool_init(u32 all_mem)
 
     // 内核1M+页表1M已用
     u32 used_mem = page_table_size + 0x100000;
+    
     // 可用32M-2M=30M
     u32 free_mem = all_mem - used_mem;
     u16 all_free_pages = free_mem / PG_SIZE;
@@ -98,7 +103,16 @@ static void *vaddr_get(enum pool_type type, u32 count)
     }
     else
     {
-        // 在用户空间分配虚拟内存...
+        // 在用户空间分配虚拟内存
+        struct task_struct *cur = running_thread();
+        bit_index_start = bitmap_request_bits(&cur->userprog_vaddr.addr_bitmap, count);
+        if (bit_index_start == -1)
+            return NULL;
+
+        for (u32 i = bit_index_start; i < bit_index_start + count; i++)
+            bitmap_set_bit(&cur->userprog_vaddr.addr_bitmap, i, 1);
+        vaddr_start = cur->userprog_vaddr.addr_start + bit_index_start * PG_SIZE;
+        ASSERT((u32)vaddr_start < (0xc0000000 - PG_SIZE));
     }
     return (void *)vaddr_start;
 }
@@ -209,10 +223,65 @@ void *get_kernel_pages(u32 count)
     return vaddr;
 }
 
+/// @brief 分配n页用户物理内存，并返回其虚拟地址
+/// @param pg_cnt
+/// @return
+void *get_user_pages(u32 pg_cnt)
+{
+    lock_acquire(&user_pool.lock);
+    void *vaddr = malloc_page(USER_POOL, pg_cnt);
+    memset(vaddr, 0, pg_cnt * PG_SIZE);
+    lock_release(&user_pool.lock);
+    return vaddr;
+}
+
+void *get_a_page(enum pool_type pf, u32 vaddr)
+{
+    struct pool *mem_pool = pf & KERNEL_POOL ? &kernel_pool : &user_pool;
+    lock_acquire(&mem_pool->lock);
+
+    struct task_struct *cur = running_thread();
+    i32 bit_idx = -1;
+
+    if (cur->pgdir != NULL && pf == USER_POOL)
+    {
+        bit_idx = (vaddr - cur->userprog_vaddr.addr_start) / PG_SIZE;
+        ASSERT(bit_idx > 0);
+        bitmap_set_bit(&cur->userprog_vaddr.addr_bitmap, bit_idx, 1);
+    }
+    else if (cur->pgdir == NULL && pf == KERNEL_POOL)
+    {
+        bit_idx = (vaddr - kernel_vaddr.addr_start) / PG_SIZE;
+        ASSERT(bit_idx > 0);
+        bitmap_set_bit(&kernel_vaddr.addr_bitmap, bit_idx, 1);
+    }
+    else
+        PANIC("get_a_page:not allow kernel alloc userspace or user alloc kernelspace by get_a_page");
+
+    void *page_phyaddr = palloc(mem_pool);
+    if (page_phyaddr == NULL)
+        return NULL;
+
+    page_table_add((void *)vaddr, page_phyaddr);
+    lock_release(&mem_pool->lock);
+    return (void *)vaddr;
+}
+
+u32 addr_v2p(u32 vaddr)
+{
+    u32 *pte = pte_ptr(vaddr);
+    /* (*pte)的值是页表所在的物理页框地址,
+     * 去掉其低12位的页表项属性+虚拟地址vaddr的低12位 */
+    return ((*pte & 0xfffff000) + (vaddr & 0x00000fff));
+}
+
 void memory_init()
 {
     u32 mem_bytes_total = (*(u32 *)(0xd00));
     mem_pool_init(mem_bytes_total);
+
+    lock_init(&user_pool.lock);
+    lock_init(&kernel_pool.lock);
 
     printf("memory_init done\n");
 }

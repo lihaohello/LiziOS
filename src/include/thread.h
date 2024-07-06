@@ -3,10 +3,12 @@
 
 #include "list.h"
 #include "types.h"
+#include "memory.h"
 
-typedef void thread_func(void*);
+typedef void thread_func(void *);
 
-enum task_status {
+enum task_status
+{
     TASK_RUNNING,
     TASK_READY,
     TASK_BLOCKED,
@@ -16,7 +18,8 @@ enum task_status {
 };
 
 /// @brief 中断上下文备份结构
-struct intr_stack {
+struct intr_stack
+{
     u32 vec_no;
     u32 edi;
     u32 esi;
@@ -34,51 +37,54 @@ struct intr_stack {
     void (*eip)(void);
     u32 cs;
     u32 eflags;
-    void* esp;
+    void *esp;
     u32 ss;
 };
 
 /// @brief 线程栈结构
-struct thread_stack {
+struct thread_stack
+{
     u32 ebp;
     u32 ebx;
     u32 edi;
     u32 esi;
 
-    void (*eip)(thread_func* func, void* func_arg);
+    void (*eip)(thread_func *func, void *func_arg);
 
     void(*unused_retaddr);
-    thread_func* function;
-    void* func_arg;
+    thread_func *function;
+    void *func_arg;
 };
 
 /// @brief PCB结构
-struct task_struct {
-    u32* self_kstack;
+struct task_struct
+{
+    u32 *self_kstack;
     enum task_status status;
     char name[16];
     u8 priority;
     u8 ticks;
     struct list_elem general_tag;
     struct list_elem all_list_tag;
-    u32* pgdir;
+    u32 *pgdir;
+    struct virtual_addr userprog_vaddr;
     u32 stack_magic;
 };
 
-struct task_struct* thread_start(char*, int, thread_func, void*);
+struct task_struct *thread_start(char *, int, thread_func, void *);
 void thread_init();
 void schedule();
-struct task_struct* thread_start(char* name,
+struct task_struct *thread_start(char *name,
                                  int prio,
                                  thread_func function,
-                                 void* func_arg);
-void thread_create(struct task_struct* pthread,
+                                 void *func_arg);
+void thread_create(struct task_struct *pthread,
                    thread_func function,
-                   void* func_arg);
-void init_thread(struct task_struct* pthread, char* name, int prio);
-struct task_struct* running_thread();
+                   void *func_arg);
+void init_thread(struct task_struct *pthread, char *name, int prio);
+struct task_struct *running_thread();
 
 void thread_block(enum task_status status);
-void thread_unblock(struct task_struct* pthread);
+void thread_unblock(struct task_struct *pthread);
 
 #endif
