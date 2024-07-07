@@ -20,8 +20,8 @@ intr%1entry:
    push fs
    push gs
    pushad
-
-   ; 结束中断（必须在实际逻辑之前发送EOI，不然中断会出现问题）
+   
+   ; 结束中断（必须在执行之前发送EOI，应该在中断逻辑中涉及进程切换，代码不会走这一步）
    mov al,0x20
    out 0xa0,al
    out 0x20,al

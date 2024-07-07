@@ -6,8 +6,6 @@ section .text
 ;--------------------------------------
 ; 打印字符（不暴露该函数，仅供print_str使用）
 print_char:
-  ; xchg bx,bx
-
   pushad
   mov ax,SELECTOR_VIDEO
   mov gs,ax

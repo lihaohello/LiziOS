@@ -39,6 +39,7 @@ get_total_mem_bytes:
   .next_ards:
     loop .find_max_mem_area
   mov [total_mem_bytes],edx
+  ; 将内存容量写到指定内存处，供内存初始化使用
   mov [0xd00],edx
 ; 查看内存容量
 mov eax,[total_mem_bytes]

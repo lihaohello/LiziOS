@@ -1,15 +1,15 @@
 #include "interrupt.h"
+#include "assert.h"
 #include "io.h"
 #include "stdio.h"
 #include "thread.h"
 #include "types.h"
-#include "assert.h"
 
-#define interrupt_num 0x21 
+
+#define interrupt_num 0x21
 
 /// @brief 中断描述符
-struct interrupt_descriptor
-{
+struct interrupt_descriptor {
     u16 func_offset_low_word;
     u16 selector;
     u8 dcount;
@@ -18,20 +18,19 @@ struct interrupt_descriptor
 };
 
 // 内部链接函数声明
-static void pic_init(void);
-static void idt_init(void);
-static void make_idt_desc(struct interrupt_descriptor *p_gdesc, u8 attr, intr_handler function);
-static void default_interrupt_handler(u8 i);
-static void clock_interrupt_handler(void);
+static void pic_init();
+static void idt_init();
+static void make_idt_desc(struct interrupt_descriptor*, u8, intr_handler);
+static void default_interrupt_handler(u8);
+static void clock_interrupt_handler();
 
 // 变量声明
-char *interrupt_names[interrupt_num];
+char* interrupt_names[interrupt_num];
 intr_handler c_interrupt_entry_table[interrupt_num];
 extern intr_handler real_interrupt_entry_table[interrupt_num];
 static struct interrupt_descriptor idt[interrupt_num];
 
-void interrupt_init()
-{
+void interrupt_init() {
     pic_init();
     idt_init();
 
@@ -40,8 +39,8 @@ void interrupt_init()
     printf("interrupt_init is done.\n");
 }
 
-static void pic_init(void)
-{
+/// @brief 可编程中断控制器初始化
+static void pic_init() {
     // 写入ICW1
     outb(0x20, 0b00010001);
     outb(0xa0, 0b00010001);
@@ -63,10 +62,9 @@ static void pic_init(void)
     outb(0xa1, 0xff);
 }
 
-static void idt_init(void)
-{
-    for (int i = 0; i < interrupt_num; i++)
-    {
+/// @brief 中断描述符表初始化
+static void idt_init() {
+    for (int i = 0; i < interrupt_num; i++) {
         if (i == 0x20)
             c_interrupt_entry_table[i] = clock_interrupt_handler;
         else
@@ -98,34 +96,36 @@ static void idt_init(void)
         make_idt_desc(&idt[i], 0b10001110, real_interrupt_entry_table[i]);
 }
 
-static void make_idt_desc(struct interrupt_descriptor *p_gdesc, u8 attr, intr_handler function)
-{
-    p_gdesc->func_offset_low_word = (u32)function & 0x0000FFFF;
-    p_gdesc->selector = (1 << 3);
-    p_gdesc->dcount = 0;
-    p_gdesc->attribute = attr;
-    p_gdesc->func_offset_high_word = ((u32)function & 0xFFFF0000) >> 16;
+/// @brief 创建中断描述符
+/// @param p_descriptor
+/// @param attr
+/// @param function
+static void make_idt_desc(struct interrupt_descriptor* p_descriptor,
+                          u8 attr,
+                          intr_handler function) {
+    p_descriptor->func_offset_low_word = (u32)function & 0x0000FFFF;
+    p_descriptor->selector = (1 << 3);
+    p_descriptor->dcount = 0;
+    p_descriptor->attribute = attr;
+    p_descriptor->func_offset_high_word = ((u32)function & 0xFFFF0000) >> 16;
 }
 
 // -----------------------------------------------------------------------
 // 中断处理函数
-static void default_interrupt_handler(u8 i)
-{
-    if (i == 0x27 || i == 0x2f)
+static void default_interrupt_handler(u8 intr_id) {
+    if (intr_id == 0x27 || intr_id == 0x2f)
         return;
 
     set_cursor(0);
     int cursor_pos = 0;
-    while (cursor_pos < 320)
-    {
+    while (cursor_pos < 320) {
         printf(" ");
         cursor_pos++;
     }
     set_cursor(0);
     printf("----- Exception message begin -----\n");
-    printf("%s\n", interrupt_names[i]);
-    if (i == 14)
-    {
+    printf("%s\n", interrupt_names[intr_id]);
+    if (intr_id == 14) {
         // 缺页中断
         u32 page_fault_vaddr = 0;
         asm volatile("movl %%cr2,%0;" : "=r"(page_fault_vaddr));
@@ -136,9 +136,9 @@ static void default_interrupt_handler(u8 i)
         ;
 }
 
-static void clock_interrupt_handler(void)
-{
-    struct task_struct *cur_thread = running_thread();
+/// @brief 时钟中断执行逻辑
+static void clock_interrupt_handler() {
+    struct task_struct* cur_thread = running_thread();
     ASSERT(cur_thread->stack_magic == 0x19870916);
 
     if (cur_thread->ticks == 0)
@@ -150,42 +150,33 @@ static void clock_interrupt_handler(void)
 
 // -----------------------------------------------------------------------
 // 开关中断
-enum intr_status intr_enable()
-{
+enum intr_status intr_enable() {
     enum intr_status old_status;
-    if (INTR_ON == intr_get_status())
-    {
+    if (INTR_ON == intr_get_status()) {
         old_status = INTR_ON;
         return old_status;
-    }
-    else
-    {
+    } else {
         old_status = INTR_OFF;
         asm volatile("sti");
         return old_status;
     }
 }
 
-enum intr_status intr_disable()
-{
+enum intr_status intr_disable() {
     enum intr_status old_status;
-    if (INTR_ON == intr_get_status())
-    {
+    if (INTR_ON == intr_get_status()) {
         old_status = INTR_ON;
         asm volatile("cli" : : : "memory");
-    }
-    else
+    } else
         old_status = INTR_OFF;
     return old_status;
 }
 
-enum intr_status intr_set_status(enum intr_status status)
-{
+enum intr_status intr_set_status(enum intr_status status) {
     return status & INTR_ON ? intr_enable() : intr_disable();
 }
 
-enum intr_status intr_get_status()
-{
+enum intr_status intr_get_status() {
     u32 eflags = 0;
     asm volatile("pushfl; popl %0;" : "=g"(eflags));
     return (0x00000200 & eflags) ? INTR_ON : INTR_OFF;
