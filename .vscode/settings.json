@@ -19,6 +19,7 @@
     "memory.h": "c",
     "timer.h": "c",
     "cstdint": "c",
-    "io.h": "c"
+    "io.h": "c",
+    "thread.h": "c"
   }
 }
