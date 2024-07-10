@@ -4,6 +4,7 @@
 #include "timer.h"
 #include "thread.h"
 #include "interrupt.h"
+#include "console.h"
 
 void k_thread(void *);
 
@@ -19,20 +20,18 @@ int main(void)
     memory_init();
     // 主进程初始化
     thread_init();
+    // 控制台初始化
+    console_init();
 
     // 创建内核线程
     thread_start("k_thread_a", 4, k_thread, "A ");
     thread_start("k_thread_b", 4, k_thread, "B ");
-    thread_start("k_thread_c", 4, k_thread, "C ");
-    thread_start("k_thread_d", 4, k_thread, "D ");
 
     // 开启中断
     intr_enable();
 
     while (1){
-        asm volatile("cli");
-        printf("0 ");
-        asm volatile("sti");
+        console_print_str("0 ");
     }
 
     return 0;
@@ -45,8 +44,6 @@ void k_thread(void *arg)
     char *para = arg;
     while (1)
     {
-        asm volatile("cli");
-        printf(para);
-        asm volatile("sti");
+        console_print_str(para);
     }
 }

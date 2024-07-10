@@ -1,25 +1,6 @@
 {
   "files.associations": {
-    "inttypes.h": "c",
-    "stdint-gcc.h": "c",
-    "print.h": "c",
-    "init.h": "c",
-    "interrupt.h": "c",
     "stdio.h": "c",
-    "global.h": "c",
-    "types.h": "c",
-    "stdarg.h": "c",
-    "*.tcc": "c",
-    "cstdio": "c",
-    "assert.h": "c",
-    "string.h": "c",
-    "printf.h": "c",
-    "stdint.h": "c",
-    "bitmap.h": "c",
-    "memory.h": "c",
-    "timer.h": "c",
-    "cstdint": "c",
-    "io.h": "c",
-    "thread.h": "c"
+    "console.h": "c"
   }
 }

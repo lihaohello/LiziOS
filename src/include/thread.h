@@ -78,4 +78,7 @@ void thread_create(struct task_struct* pthread,
 void init_thread(struct task_struct* pthread, char* name, int prio);
 struct task_struct* running_thread();
 
+void thread_block(enum task_status status);
+void thread_unblock(struct task_struct* pthread);
+
 #endif

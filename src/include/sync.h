@@ -16,4 +16,8 @@ struct lock {
     u32 holder_repeat_nr;
 };
 
+void lock_init(struct lock* plock);
+void lock_acquire(struct lock* plock);
+void lock_release(struct lock* plock);
+
 #endif
