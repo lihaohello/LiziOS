@@ -1,6 +1,8 @@
 {
   "files.associations": {
     "stdio.h": "c",
-    "console.h": "c"
+    "console.h": "c",
+    "compare": "c",
+    "cstdint": "c"
   }
 }

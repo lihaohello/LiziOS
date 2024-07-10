@@ -5,6 +5,7 @@
 #include "thread.h"
 #include "interrupt.h"
 #include "console.h"
+#include "keyboard.h"
 
 void k_thread(void *);
 
@@ -22,17 +23,21 @@ int main(void)
     thread_init();
     // 控制台初始化
     console_init();
+    // 键盘初始化
+    keyboard_init();
 
     // 创建内核线程
-    thread_start("k_thread_a", 4, k_thread, "A ");
-    thread_start("k_thread_b", 4, k_thread, "B ");
+    // thread_start("k_thread_a", 4, k_thread, "A ");
+    // thread_start("k_thread_b", 4, k_thread, "B ");
 
     // 开启中断
     intr_enable();
 
-    while (1){
-        console_print_str("0 ");
-    }
+    while (1)
+        ;
+    // while (1){
+    //     console_print_str("0 ");
+    // }
 
     return 0;
 }

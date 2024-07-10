@@ -5,8 +5,7 @@
 #include "thread.h"
 #include "types.h"
 
-
-#define interrupt_num 0x21
+#define interrupt_num 0x30
 
 /// @brief 中断描述符
 struct interrupt_descriptor {
@@ -58,7 +57,7 @@ static void pic_init() {
     outb(0xa1, 0b00000001);
 
     // 写入OCW1,设置中断屏蔽，这里只开放时钟中断
-    outb(0x21, 0xfe);
+    outb(0x21, 0xfd);
     outb(0xa1, 0xff);
 }
 
@@ -111,6 +110,14 @@ static void make_idt_desc(struct interrupt_descriptor* p_descriptor,
 }
 
 // -----------------------------------------------------------------------
+
+/// @brief 注册中断处理函数
+/// @param num 中断编号
+/// @param handler 中断处理函数
+void register_handler(u8 num, intr_handler handler) {
+    c_interrupt_entry_table[num] = handler;
+}
+
 // 中断处理函数
 static void default_interrupt_handler(u8 intr_id) {
     if (intr_id == 0x27 || intr_id == 0x2f)
