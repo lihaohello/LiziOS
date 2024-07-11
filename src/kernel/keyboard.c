@@ -98,23 +98,21 @@ static void intr_keyboard_handler(void) {
     bool ctrl_down_last = ctrl_status;
     bool shift_down_last = shift_status;
     bool caps_lock_last = caps_lock_status;
-
     bool break_code;
-    u16 scancode = inb(KBD_BUF_PORT);
 
+    u16 scancode = inb(KBD_BUF_PORT);
     if (scancode == 0xe0) {
         ext_scancode = true;
         return;
     }
-
     if (ext_scancode) {
         scancode = ((0xe000) | scancode);
         ext_scancode = false;
     }
-
+    // 判断是否为断码：最高位为1是断码
     break_code = ((scancode & 0x0080) != 0);
-
     if (break_code) {
+        // 根据断码求通码：取后7位即可
         u16 make_code = (scancode &= 0xff7f);
         if (make_code == ctrl_l_make || make_code == ctrl_r_make) {
             ctrl_status = false;
@@ -123,14 +121,14 @@ static void intr_keyboard_handler(void) {
         } else if (make_code == alt_l_make || make_code == alt_r_make) {
             alt_status = false;
         }
-
         return;
-
     }
 
+    // alt_r_make和ctrl_r_make是复合按键
     else if ((scancode > 0x00 && scancode < 0x3b) || (scancode == alt_r_make) ||
              (scancode == ctrl_r_make)) {
         bool shift = false;
+        // 对于非字母按键
         if ((scancode < 0x0e) || (scancode == 0x29) || (scancode == 0x1a) ||
             (scancode == 0x1b) || (scancode == 0x2b) || (scancode == 0x27) ||
             (scancode == 0x28) || (scancode == 0x33) || (scancode == 0x34) ||
@@ -139,6 +137,7 @@ static void intr_keyboard_handler(void) {
                 shift = true;
             }
         } else {
+            // 以下处理大小写字母的情况，由于与shift和capslock两个按键相关，所以需要更加复杂的判断
             if (shift_down_last && caps_lock_last) {
                 shift = false;
             } else if (shift_down_last || caps_lock_last) {
@@ -147,10 +146,8 @@ static void intr_keyboard_handler(void) {
                 shift = false;
             }
         }
-
         u8 index = (scancode &= 0x00ff);
         char cur_char = keymap[index][shift];
-
         if (cur_char) {
             printf("%c", cur_char);
             return;
@@ -172,5 +169,6 @@ static void intr_keyboard_handler(void) {
 
 void keyboard_init() {
     register_handler(0x21, intr_keyboard_handler);
+
     printf("keyboard_init id done.\n");
 }

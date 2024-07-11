@@ -3,6 +3,7 @@
     "stdio.h": "c",
     "console.h": "c",
     "compare": "c",
-    "cstdint": "c"
+    "cstdint": "c",
+    "types.h": "c"
   }
 }

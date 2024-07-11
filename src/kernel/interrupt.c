@@ -21,7 +21,6 @@ static void pic_init();
 static void idt_init();
 static void make_idt_desc(struct interrupt_descriptor*, u8, intr_handler);
 static void default_interrupt_handler(u8);
-static void clock_interrupt_handler();
 
 // 变量声明
 char* interrupt_names[interrupt_num];
@@ -64,11 +63,7 @@ static void pic_init() {
 /// @brief 中断描述符表初始化
 static void idt_init() {
     for (int i = 0; i < interrupt_num; i++) {
-        if (i == 0x20)
-            c_interrupt_entry_table[i] = clock_interrupt_handler;
-        else
-            c_interrupt_entry_table[i] = default_interrupt_handler;
-        interrupt_names[i] = "unknown";
+        c_interrupt_entry_table[i] = default_interrupt_handler;
     }
     interrupt_names[0] = "#DE Divide Error";
     interrupt_names[1] = "#DB Debug Exception";
@@ -110,8 +105,7 @@ static void make_idt_desc(struct interrupt_descriptor* p_descriptor,
 }
 
 // -----------------------------------------------------------------------
-
-/// @brief 注册中断处理函数
+/// @brief 注册中断处理函数（中断默认函数在本模块中注册），其余具体中断处理函数在相应模块中注册
 /// @param num 中断编号
 /// @param handler 中断处理函数
 void register_handler(u8 num, intr_handler handler) {
@@ -141,17 +135,6 @@ static void default_interrupt_handler(u8 intr_id) {
     printf("----- Exception message end -----\n");
     while (1)
         ;
-}
-
-/// @brief 时钟中断执行逻辑
-static void clock_interrupt_handler() {
-    struct task_struct* cur_thread = running_thread();
-    ASSERT(cur_thread->stack_magic == 0x19870916);
-
-    if (cur_thread->ticks == 0)
-        schedule();
-    else
-        cur_thread->ticks--;
 }
 // -----------------------------------------------------------------------
 
