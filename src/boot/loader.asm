@@ -41,6 +41,8 @@ get_total_mem_bytes:
   mov [total_mem_bytes],edx
   ; 将内存容量写到指定内存处，供内存初始化使用
   mov [0xd00],edx
+  ; 将gdt的地址写到内存，后续可以读取
+  mov dword [0xd04],gdt_base
 ; 查看内存容量
 mov eax,[total_mem_bytes]
 ; 输出提示信息，重置光标
