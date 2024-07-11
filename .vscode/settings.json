@@ -4,6 +4,10 @@
     "console.h": "c",
     "compare": "c",
     "cstdint": "c",
-    "types.h": "c"
+    "types.h": "c",
+    "interrupt.h": "c",
+    "sync.h": "c",
+    "thread.h": "c",
+    "ioqueue.h": "c"
   }
 }

@@ -23,6 +23,12 @@ void console_print_str(char* str) {
     console_release();
 }
 
+void console_print_char(char c) {
+    console_acquire();
+    printf("%c", c);
+    console_release();
+}
+
 void console_print_num(u32 num) {
     console_acquire();
     printf("%d", num);

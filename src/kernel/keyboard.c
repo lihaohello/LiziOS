@@ -1,6 +1,7 @@
 #include "keyboard.h"
 #include "interrupt.h"
 #include "io.h"
+#include "ioqueue.h"
 #include "stdio.h"
 
 #define KBD_BUF_PORT 0x60
@@ -32,6 +33,9 @@
 
 static bool ctrl_status, shift_status, alt_status, caps_lock_status,
     ext_scancode;
+
+// 键盘环形缓存区
+struct ioqueue kbd_buf;
 
 static char keymap[][2] = {
     /* 0x00 */ {0, 0},
@@ -149,7 +153,10 @@ static void intr_keyboard_handler(void) {
         u8 index = (scancode &= 0x00ff);
         char cur_char = keymap[index][shift];
         if (cur_char) {
-            printf("%c", cur_char);
+            if(!ioq_full(&kbd_buf)){
+                // printf("%c", cur_char);
+                ioq_putchar(&kbd_buf, cur_char);
+            }
             return;
         }
 
@@ -168,6 +175,7 @@ static void intr_keyboard_handler(void) {
 }
 
 void keyboard_init() {
+    ioq_init(&kbd_buf);
     register_handler(0x21, intr_keyboard_handler);
 
     printf("keyboard_init id done.\n");

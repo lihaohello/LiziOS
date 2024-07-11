@@ -8,7 +8,7 @@ KERNEL_OBJS:=$(BUILD_DIR)main.o $(BUILD_DIR)interrupt.o $(BUILD_DIR)prints.o \
 $(BUILD_DIR)interrupt_handler.o $(BUILD_DIR)timer.o $(BUILD_DIR)assert.o \
 $(BUILD_DIR)thread.o $(BUILD_DIR)printf.o $(BUILD_DIR)string.o $(BUILD_DIR)vsprintf.o \
 $(BUILD_DIR)memory.o $(BUILD_DIR)bitmap.o $(BUILD_DIR)list.o $(BUILD_DIR)switch.o \
-$(BUILD_DIR)sync.o $(BUILD_DIR)console.o $(BUILD_DIR)keyboard.o
+$(BUILD_DIR)sync.o $(BUILD_DIR)console.o $(BUILD_DIR)keyboard.o $(BUILD_DIR)ioqueue.o
 
 
 $(BUILD_DIR)%.bin: $(BOOT_DIR)%.asm

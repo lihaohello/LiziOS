@@ -1,16 +1,16 @@
 #include "assert.h"
+#include "console.h"
+#include "interrupt.h"
+#include "ioqueue.h"
+#include "keyboard.h"
 #include "memory.h"
 #include "stdio.h"
-#include "timer.h"
 #include "thread.h"
-#include "interrupt.h"
-#include "console.h"
-#include "keyboard.h"
+#include "timer.h"
 
-void k_thread(void *);
+void k_thread(void*);
 
-int main(void)
-{
+int main(void) {
     printf("\n\nLiziOS is initializing the kernel...\n");
 
     // 中断初始化
@@ -26,29 +26,24 @@ int main(void)
     // 键盘初始化
     keyboard_init();
 
-    // 创建内核线程
-    // thread_start("k_thread_a", 4, k_thread, "A ");
-    // thread_start("k_thread_b", 4, k_thread, "B ");
-
-    // 开启中断
+    thread_start("k_thread_a", 8, k_thread, "A_");
+    thread_start("k_thread_b", 8, k_thread, "B_");
     intr_enable();
 
     while (1)
         ;
-    // while (1){
-    //     console_print_str("0 ");
-    // }
-
     return 0;
 }
 
-/// @brief 内核线程指定的函数
-/// @param arg 
-void k_thread(void *arg)
-{
-    char *para = arg;
-    while (1)
-    {
-        console_print_str(para);
+void k_thread(void* arg) {
+    while (1) {
+        enum intr_status old_status = intr_disable();
+        if (!ioq_empty(&kbd_buf)) {
+            console_print_str(arg);
+            char byte = ioq_getchar(&kbd_buf);
+            console_print_char(byte);
+            console_print_char(' ');
+        }
+        intr_set_status(old_status);
     }
 }

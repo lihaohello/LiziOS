@@ -56,7 +56,7 @@ static void pic_init() {
     outb(0xa1, 0b00000001);
 
     // 写入OCW1,设置中断屏蔽，这里只开放时钟中断
-    outb(0x21, 0xfd);
+    outb(0x21, 0xfc);
     outb(0xa1, 0xff);
 }
 
