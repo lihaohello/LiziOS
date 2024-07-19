@@ -29,24 +29,23 @@ intr%1entry:
    ; 执行具体的中断处理函数
    push %1
    call [c_interrupt_entry_table+4*%1]
-   add esp,4
+   jmp intr_exit
+   
+section .data
+   dd intr%1entry
+%endmacro
 
-   ; 还原执行现场
+section .text
+global intr_exit
+intr_exit:	     
+   add esp, 4	
    popad
    pop gs
    pop fs
    pop es
    pop ds
-
-   ; 将错误码出栈
-   add esp,4
-   ; 返回中断函数执行前的地址
-   iret
-
-section .data
-   dd intr%1entry
-%endmacro
-
+   add esp, 4	
+   iretd
 
 ; 定义0~32号中断处理函数（不是可屏蔽中断）
 VECTOR 0x00,0

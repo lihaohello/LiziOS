@@ -2,6 +2,7 @@
 #include "assert.h"
 #include "interrupt.h"
 #include "memory.h"
+#include "process.h"
 #include "stdio.h"
 #include "string.h"
 
@@ -69,7 +70,7 @@ struct task_struct* thread_start(char* name,
                                  int prio,
                                  thread_func function,
                                  void* func_arg) {
-    struct task_struct* thread = get_kernel_pages(1);
+    struct task_struct* thread = malloc_kernel_pages(1);
 
     init_thread(thread, name, prio);
     thread_create(thread, function, func_arg);
@@ -99,6 +100,8 @@ void schedule() {
     struct task_struct* next =
         elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
+
+    process_activate(next);
     switch_to(cur, next);
 }
 
@@ -108,13 +111,6 @@ static void make_main_thread() {
 
     ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
     list_append(&thread_all_list, &main_thread->all_list_tag);
-}
-
-void thread_init() {
-    list_init(&thread_ready_list);
-    list_init(&thread_all_list);
-    make_main_thread();
-    printf("thread_init is done.\n");
 }
 
 /// @brief 线程阻塞
@@ -142,4 +138,11 @@ void thread_unblock(struct task_struct* pthread) {
     list_push(&thread_ready_list, &pthread->general_tag);
     pthread->status = TASK_READY;
     intr_set_status(old_status);
+}
+
+void thread_init() {
+    list_init(&thread_ready_list);
+    list_init(&thread_all_list);
+    make_main_thread();
+    printf("thread_init is done.\n");
 }

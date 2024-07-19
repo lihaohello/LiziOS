@@ -9,6 +9,7 @@
     "sync.h": "c",
     "thread.h": "c",
     "ioqueue.h": "c",
-    "memory.h": "c"
+    "memory.h": "c",
+    "tss.h": "c"
   }
 }

@@ -5,9 +5,9 @@
 
 /// @brief 位图数据结构
 struct bitmap {
-    /// @brief 总长度（单位：字节）
+    /// @brief 位图总长度（单位：字节）
     u32 length;
-    /// @brief 起始字节指针
+    /// @brief 位图起始字节的位置
     u8* bits;
 };
 

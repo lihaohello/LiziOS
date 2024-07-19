@@ -8,20 +8,25 @@
 #include "thread.h"
 #include "timer.h"
 #include "tss.h"
+#include "process.h"
 
-void k_thread(void*);
+void k_thread_a(void*);
+void k_thread_b(void*);
+void u_prog_a(void);
+void u_prog_b(void);
+int test_var_a = 0, test_var_b = 0;
 
 int main(void) {
     printf("\n\nLiziOS is initializing the kernel...\n");
 
     // 中断初始化
     interrupt_init();
-    // 计时器初始化
-    timer_init();
     // 内存管理系统初始化
     memory_init();
     // 主进程初始化
     thread_init();
+    // 计时器初始化
+    timer_init();
     // 控制台初始化
     console_init();
     // 键盘初始化
@@ -29,8 +34,11 @@ int main(void) {
     // 初始化任务
     tss_init();
 
-    // thread_start("k_thread_a", 8, k_thread, "A_");
-    // thread_start("k_thread_b", 8, k_thread, "B_");
+    // thread_start("k_thread_a", 31, k_thread_a, "argA ");
+    // thread_start("k_thread_b", 31, k_thread_b, "argB ");
+    // process_execute(u_prog_a, "user_prog_a");
+    // process_execute(u_prog_b, "user_prog_b");
+
     intr_enable();
 
     while (1)
@@ -38,15 +46,34 @@ int main(void) {
     return 0;
 }
 
-void k_thread(void* arg) {
+/* 在线程中运行的函数 */
+void k_thread_a(void* arg) {
+    char* para = arg;
     while (1) {
-        enum intr_status old_status = intr_disable();
-        if (!ioq_empty(&kbd_buf)) {
-            console_print_str(arg);
-            char byte = ioq_getchar(&kbd_buf);
-            console_print_char(byte);
-            console_print_char(' ');
-        }
-        intr_set_status(old_status);
+        console_print_str(" v_a:");
+        console_print_num(test_var_a++);
+    }
+}
+
+/* 在线程中运行的函数 */
+void k_thread_b(void* arg) {
+    char* para = arg;
+    while (1) {
+        console_print_str(" v_b:");
+        console_print_num(test_var_b++);
+    }
+}
+
+/* 测试用户进程 */
+void u_prog_a(void) {
+    while (1) {
+        test_var_a++;
+    }
+}
+
+/* 测试用户进程 */
+void u_prog_b(void) {
+    while (1) {
+        test_var_b++;
     }
 }

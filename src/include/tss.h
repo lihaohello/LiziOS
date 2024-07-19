@@ -4,7 +4,6 @@
 #include "thread.h"
 #include "types.h"
 
-#define PG_SIZE 0x1000
 struct gdt_desc {
     u16 limit_low_word;
     u16 base_low_word;

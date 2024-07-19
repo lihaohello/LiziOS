@@ -7,6 +7,9 @@
 
 typedef void thread_func(void *);
 
+extern struct list thread_ready_list;
+extern struct list thread_all_list;
+
 enum task_status
 {
     TASK_RUNNING,

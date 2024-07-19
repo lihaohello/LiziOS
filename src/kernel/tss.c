@@ -4,6 +4,8 @@
 #include "thread.h"
 #include "types.h"
 
+#define PG_SIZE 0x1000
+
 struct tss {
     u32 backlink;
 
@@ -63,7 +65,7 @@ static struct gdt_desc make_gdt_desc(u32* desc_addr,
 }
 
 void tss_init() {
-    u32 tss_size = sizeof(tss);
+    u32 tss_size = sizeof(struct tss);
     memset(&tss, 0, tss_size);
     tss.ss0 = (2 << 3);
     tss.io_base = tss_size;
