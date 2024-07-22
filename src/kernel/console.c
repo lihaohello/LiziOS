@@ -7,6 +7,7 @@ static struct lock console_lock;
 
 void console_init() {
     lock_init(&console_lock);
+    printf("console_init is done.\n");
 }
 
 static void console_acquire() {

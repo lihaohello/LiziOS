@@ -8,6 +8,7 @@
 
 // 定义时钟频率
 #define HZ 100
+#define BOCHS_BREAK asm volatile("xchg %bx,%bx");
 
 static void pic_init() {
     // 往控制字寄存器端口0x43中写入控制字
@@ -23,8 +24,9 @@ static void clock_interrupt_handler() {
     struct task_struct* cur_thread = running_thread();
     ASSERT(cur_thread->stack_magic == 0x19870916);
 
-    if (cur_thread->ticks == 0)
+    if (cur_thread->ticks == 0){
         schedule();
+    }
     else
         cur_thread->ticks--;
 }

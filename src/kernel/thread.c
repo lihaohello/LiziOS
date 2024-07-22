@@ -55,6 +55,7 @@ void thread_create(struct task_struct* pthread,
 
     /* 再留出线程栈空间,可见thread.h中定义 */
     pthread->self_kstack -= sizeof(struct thread_stack);
+
     struct thread_stack* kthread_stack =
         (struct thread_stack*)pthread->self_kstack;
     kthread_stack->ebp = kthread_stack->ebx = kthread_stack->esi =
@@ -101,13 +102,15 @@ void schedule() {
         elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
 
+    printf("cur: %x\nnect: %x\n", cur, next);
     process_activate(next);
+    printf("process_activate---cur: %x\nnect: %x\n", cur, next);
     switch_to(cur, next);
 }
 
 static void make_main_thread() {
     main_thread = running_thread();
-    init_thread(main_thread, "main", 4);
+    init_thread(main_thread, "main", 31);
 
     ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
     list_append(&thread_all_list, &main_thread->all_list_tag);

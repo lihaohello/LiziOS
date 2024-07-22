@@ -8,7 +8,9 @@
 #include "thread.h"
 #include "tss.h"
 #include "types.h"
+#include "stdio.h"
 
+#define BOCHS_BREAK asm volatile("xchg %bx,%bx");
 #define PG_SIZE 4096
 #define USER_VADDR_START 0x8048000
 #define DIV_ROUND_UP(X, STEP) ((X + STEP - 1) / (STEP))
@@ -28,35 +30,46 @@ void start_process(void* filename) {
     proc_stack->cs = 0b101011;
     proc_stack->eflags = ((1 < 1) | (1 << 9));
     proc_stack->esp =
-        (void*)((u32)get_a_page(USER_POOL, (0xc0000000 - 0x1000)) + PG_SIZE);
+        (void*)((u32)get_a_page(USER_POOL, 0xc0000000 - 0x1000) + PG_SIZE);
     proc_stack->ss = 0b110011;
+    BOCHS_BREAK
     asm volatile("movl %0, %%esp; jmp intr_exit"
                  :
                  : "g"(proc_stack)
                  : "memory");
 }
 
+void set_cr3(u32 pde){
+    asm volatile("movl %%eax,%%cr3\n" ::"a"(pde));
+}
+
 void page_dir_activate(struct task_struct* p_thread) {
     u32 pagedir_phy_addr = 0x100000;
     if (p_thread->pgdir != NULL)
-        pagedir_phy_addr = vaddr_to_paddr((u32)p_thread->pgdir);
-    asm volatile("movl %0, %%cr3" : : "r"(pagedir_phy_addr) : "memory");
+        pagedir_phy_addr = vaddr_to_paddr((u32)(p_thread->pgdir));
+
+    printf("pagedir_phy_addr: %x\n", pagedir_phy_addr);
+    printf("-----change cr3 beginning!-----\n");
+    // 这里的内联汇编有问题
+    set_cr3(pagedir_phy_addr);
+    printf("-----change cr3 finished!-----\n");
 }
 
 void process_activate(struct task_struct* p_thread) {
     ASSERT(p_thread != NULL);
     page_dir_activate(p_thread);
-    if (p_thread->pgdir) {
+    if (p_thread->pgdir) 
         update_tss_esp(p_thread);
-    }
 }
 
-u32* create_page_dir(void) {
+u32* create_page_dir() {
     u32* page_dir_vaddr = malloc_kernel_pages(1);
     if (page_dir_vaddr == NULL) {
         console_print_str("create_page_dir: get_kernel_page failed!");
         return NULL;
     }
+    // FFFF F000对应物理地址0x100000处，刚好是内核进程的页表起始位置
+    // FFFF FC00是第768个页目录项开始的地方
     memcpy((u32*)((u32)page_dir_vaddr + 0x300 * 4),
            (u32*)(0xfffff000 + 0x300 * 4), 1024);
 
@@ -85,11 +98,9 @@ void process_execute(void* filename, char* name) {
     thread->pgdir = create_page_dir();
 
     enum intr_status old_status = intr_disable();
-
     ASSERT(!elem_find(&thread_ready_list, &thread->general_tag));
     list_append(&thread_ready_list, &thread->general_tag);
     ASSERT(!elem_find(&thread_all_list, &thread->all_list_tag));
     list_append(&thread_all_list, &thread->all_list_tag);
-
     intr_set_status(old_status);
 }

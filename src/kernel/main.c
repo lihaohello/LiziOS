@@ -4,16 +4,16 @@
 #include "ioqueue.h"
 #include "keyboard.h"
 #include "memory.h"
+#include "process.h"
 #include "stdio.h"
 #include "thread.h"
 #include "timer.h"
 #include "tss.h"
-#include "process.h"
 
 void k_thread_a(void*);
 void k_thread_b(void*);
-void u_prog_a(void);
-void u_prog_b(void);
+void u_prog_a();
+void u_prog_b();
 int test_var_a = 0, test_var_b = 0;
 
 int main(void) {
@@ -36,9 +36,8 @@ int main(void) {
 
     // thread_start("k_thread_a", 31, k_thread_a, "argA ");
     // thread_start("k_thread_b", 31, k_thread_b, "argB ");
-    // process_execute(u_prog_a, "user_prog_a");
+    process_execute(u_prog_a, "user_prog_a");
     // process_execute(u_prog_b, "user_prog_b");
-
     intr_enable();
 
     while (1)
@@ -65,14 +64,14 @@ void k_thread_b(void* arg) {
 }
 
 /* 测试用户进程 */
-void u_prog_a(void) {
+void u_prog_a() {
     while (1) {
         test_var_a++;
     }
 }
 
 /* 测试用户进程 */
-void u_prog_b(void) {
+void u_prog_b() {
     while (1) {
         test_var_b++;
     }

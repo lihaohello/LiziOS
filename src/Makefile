@@ -48,11 +48,10 @@ bochs: bochsrc $(BUILD_DIR)master.img
 
 .PHONY: qemu
 qemu: $(BUILD_DIR)master.img
-	qemu-system-i386 \
+	qemu-system-i386 -s -S \
 	-m 32M \
 	-boot c \
-	-hda $< \
-	-S -s
+	-hda $<
 
 .PHONY: clean
 clean:

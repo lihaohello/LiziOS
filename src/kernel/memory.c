@@ -228,9 +228,9 @@ void* malloc_user_pages(u32 count) {
 }
 
 /// @brief 将虚拟地址与一个物理页关联，物理页现场分配
-/// @param  
-/// @param vaddr 
-/// @return 
+/// @param
+/// @param vaddr
+/// @return
 void* get_a_page(enum pool_type pf, u32 vaddr) {
     struct pool* mem_pool = pf & KERNEL_POOL ? &kernel_pool : &user_pool;
     lock_acquire(&mem_pool->lock);
@@ -261,11 +261,12 @@ void* get_a_page(enum pool_type pf, u32 vaddr) {
 }
 
 /// @brief 虚拟地址转物理地址
-/// @param vaddr 
-/// @return 
+/// @param vaddr
+/// @return
 u32 vaddr_to_paddr(u32 vaddr) {
     u32* pte = pte_ptr(vaddr);
-    return ((*pte & 0xfffff000) + (vaddr & 0x00000fff));
+    u32 res= ((*pte & 0xfffff000) + (vaddr & 0x00000fff));
+    return res;
 }
 
 /// @brief 内存初始化的主函数
