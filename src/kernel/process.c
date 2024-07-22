@@ -40,6 +40,8 @@ void start_process(void* filename) {
 }
 
 void set_cr3(u32 pde){
+    printf("pde: 0x%x\n", pde);
+    BOCHS_BREAK
     asm volatile("movl %%eax,%%cr3\n" ::"a"(pde));
 }
 
@@ -50,8 +52,9 @@ void page_dir_activate(struct task_struct* p_thread) {
 
     printf("pagedir_phy_addr: %x\n", pagedir_phy_addr);
     printf("-----change cr3 beginning!-----\n");
-    // 这里的内联汇编有问题
     set_cr3(pagedir_phy_addr);
+    BOCHS_BREAK
+    // 这里会发生问题
     printf("-----change cr3 finished!-----\n");
 }
 

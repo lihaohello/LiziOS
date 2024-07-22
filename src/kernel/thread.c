@@ -102,9 +102,7 @@ void schedule() {
         elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
 
-    printf("cur: %x\nnect: %x\n", cur, next);
     process_activate(next);
-    printf("process_activate---cur: %x\nnect: %x\n", cur, next);
     switch_to(cur, next);
 }
 

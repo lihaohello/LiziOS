@@ -10,6 +10,7 @@
     "thread.h": "c",
     "ioqueue.h": "c",
     "memory.h": "c",
-    "tss.h": "c"
+    "tss.h": "c",
+    "stdarg.h": "c"
   }
 }
